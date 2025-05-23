@@ -2,19 +2,59 @@
   <lightning-card title="Fill Survey" icon-name="utility:poll">
     <div class="slds-p-around_medium">
 
-      <lightning-combobox
-        label="Select Survey"
-        placeholder="-- wybierz ankietę --"
-        options={surveyOptions}
-        value={selectedSurveyId}
-        onchange={handleSurveyChange}>
-      </lightning-combobox>
+      <!-- Przycisk do zmiany sortowania -->
+      <lightning-button-icon
+        icon-name={sortIcon}
+        alternative-text="Zmień sortowanie"
+        onclick={toggleSortDirection}
+        class="slds-m-bottom_small">
+      </lightning-button-icon>
 
+      <!-- Lista ankiet -->
+      <template if:true={surveys}>
+        <p class="slds-text-heading_small">Wybierz ankietę:</p>
+        <template for:each={surveys} for:item="s">
+          <div key={s.Id} class="slds-box slds-m-around_small">
+            <p><strong>{s.Title_c__c}</strong></p>
+            <p>Zakończenie:
+              <lightning-formatted-date-time
+                value={s.End_Date__c}
+                year="numeric"
+                month="2-digit"
+                day="2-digit"
+                hour="2-digit"
+                minute="2-digit">
+              </lightning-formatted-date-time>
+            </p>
+            <template if:false={s.isExpired}>
+                <lightning-button
+                  label="Wypełnij"
+                  data-id={s.Id}
+                  onclick={handleSurveyClick}
+                  class="slds-m-top_x-small">
+                </lightning-button>
+              </template>
+              <template if:true={s.isExpired}>
+                <p class="slds-text-color_error slds-m-top_x-small">
+                  Ankieta zakończona
+                </p>
+              </template>
+
+          </div>
+        </template>
+      </template>
+
+      <!-- Pytania ankiety -->
       <template if:true={questions}>
-        <template for:each={questions} for:item="q">
-          <div key={q.Id} class="slds-box slds-m-top_medium">
-            <p class="slds-text-heading_small">{q.Question_Text__c}</p>
-              
+        <template if:true={isSurveyExpired}>
+          <p class="slds-text-color_error slds-m-top_medium">
+            Ta ankieta jest już zakończona. Nie można jej wypełnić.
+          </p>
+        </template>
+        <template if:false={isSurveyExpired}>
+          <template for:each={questions} for:item="q">
+            <div key={q.Id} class="slds-box slds-m-top_medium">
+              <p class="slds-text-heading_small">{q.Question_Text__c}</p>
               <lightning-radio-group
                 name={q.Id}
                 options={q.options}
@@ -22,16 +62,16 @@
                 data-qid={q.Id}
                 onchange={handleResponse}>
               </lightning-radio-group>
+            </div>
+          </template>
 
-          </div>
+          <lightning-button
+            variant="brand"
+            label="Submit Responses"
+            class="slds-m-top_medium"
+            onclick={submitResponses}>
+          </lightning-button>
         </template>
-
-        <lightning-button
-          variant="brand"
-          label="Submit Responses"
-          class="slds-m-top_medium"
-          onclick={submitResponses}>
-        </lightning-button>
       </template>
 
     </div>

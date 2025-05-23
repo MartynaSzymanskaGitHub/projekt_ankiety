@@ -9,16 +9,24 @@ function uid() {
 export default class SurveyCreator extends LightningElement {
   @track title = '';
   @track description = '';
+  @track endDate = '';
   @track questions = [
     { id: 1, text: '', choices: [{ id: uid(), value: '' }] }
   ];
   isSaving = false;
 
-  /* --- pola ankiety --- */
-  handleTitleChange(e)       { this.title       = e.target.value; }
-  handleDescriptionChange(e) { this.description = e.target.value; }
+  handleTitleChange(e) {
+    this.title = e.target.value;
+  }
 
-  /* --- pytania --- */
+  handleDescriptionChange(e) {
+    this.description = e.target.value;
+  }
+
+  handleEndDateChange(e) {
+    this.endDate = e.target.value;
+  }
+
   addQuestion() {
     const nextId = this.questions.length + 1;
     this.questions = [
@@ -26,10 +34,12 @@ export default class SurveyCreator extends LightningElement {
       { id: nextId, text: '', choices: [{ id: uid(), value: '' }] }
     ];
   }
+
   removeQuestion(e) {
     const id = Number(e.target.dataset.id);
     this.questions = this.questions.filter(q => q.id !== id);
   }
+
   handleQuestionTextChange(e) {
     const id = Number(e.target.dataset.id);
     this.questions = this.questions.map(q =>
@@ -37,7 +47,6 @@ export default class SurveyCreator extends LightningElement {
     );
   }
 
-  /* --- opcje --- */
   addChoice(e) {
     const qid = Number(e.target.dataset.id);
     this.questions = this.questions.map(q =>
@@ -46,6 +55,7 @@ export default class SurveyCreator extends LightningElement {
         : q
     );
   }
+
   removeChoice(e) {
     const qid = Number(e.target.dataset.qid);
     const cid = e.target.dataset.cid;
@@ -55,6 +65,7 @@ export default class SurveyCreator extends LightningElement {
         : q
     );
   }
+
   handleChoiceChange(e) {
     const qid = Number(e.target.dataset.qid);
     const cid = e.target.dataset.cid;
@@ -71,18 +82,36 @@ export default class SurveyCreator extends LightningElement {
     );
   }
 
-  /* --- zapis --- */
+  isDateInPast(datetimeStr) {
+    const now = new Date();
+    const selected = new Date(datetimeStr);
+    return selected < now;
+  }
+
   saveSurvey() {
     if (!this.title) {
       this.toast('Error', 'Survey title is required', 'error');
       return;
     }
+
+    if (!this.endDate) {
+      this.toast('Error', 'End date is required', 'error');
+      return;
+    }
+
+    if (this.isDateInPast(this.endDate)) {
+      this.toast('Error', 'End date cannot be in the past', 'error');
+      return;
+    }
+
     this.isSaving = true;
 
     const survey = {
       Title_c__c: this.title,
-      Description__c: this.description
+      Description__c: this.description,
+      End_Date__c: this.endDate
     };
+
     const questions = this.questions.map(q => ({
       Question_Text__c: q.text,
       Choices__c: q.choices
@@ -96,6 +125,7 @@ export default class SurveyCreator extends LightningElement {
         this.toast('Success', 'Survey saved', 'success');
         this.title = '';
         this.description = '';
+        this.endDate = '';
         this.questions = [
           { id: 1, text: '', choices: [{ id: uid(), value: '' }] }
         ];

@@ -12,6 +12,12 @@
         onchange={handleDescriptionChange}>
       </lightning-textarea>
 
+      <lightning-input
+        type="datetime"
+        label="End Date"
+        onchange={handleEndDateChange}>
+      </lightning-input>
+
       <!-- pytania -->
       <template for:each={questions} for:item="q">
         <div key={q.id} class="slds-box slds-m-top_medium">

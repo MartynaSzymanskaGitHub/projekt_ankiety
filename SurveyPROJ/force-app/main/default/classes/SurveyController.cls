@@ -1,13 +1,25 @@
 public with sharing class SurveyController {
 @AuraEnabled(cacheable=true)
+public static List<Survey_PROJ__c> getAllSurveysWithSorting(Boolean ascending) {
+    String direction = ascending ? 'ASC' : 'DESC';
+    return Database.query(
+        'SELECT Id, Title_c__c, End_Date__c ' +
+        'FROM Survey_PROJ__c ' +
+        'WHERE End_Date__c != null AND End_Date__c >= TODAY ' +
+        'ORDER BY End_Date__c ' + direction
+    );
+}
+
+@AuraEnabled(cacheable=true)
 public static List<Survey_PROJ__c> getAllSurveys() {
     return [
-        SELECT Id,
-               Title_c__c,       
-               Description__c    
-              FROM Survey_PROJ__c
+        SELECT Id, Title_c__c, End_Date__c
+        FROM Survey_PROJ__c
+        ORDER BY Title_c__c ASC
     ];
 }
+
+
         public class OptionStat {
         @AuraEnabled public String  questionText;
         @AuraEnabled public String  choice;
@@ -63,17 +75,19 @@ public static List<OptionStat> getSurveyStats(Id surveyId) {
         upsert questions;
         return survey;
     }
-
+        
     @AuraEnabled(cacheable=true)
     public static List<Question_PROJ__c> getQuestions(Id surveyId) {
         return [
             SELECT Id,
-                   Question_Text__c,
-                   Choices__c
+                Question_Text__c,
+                Choices__c,
+                Survey__r.End_Date__c
             FROM Question_PROJ__c
             WHERE Survey__c = :surveyId
         ];
     }
+
 
     @AuraEnabled
     public static void submitResponses(List<Response_PROJ__c> responses) {
