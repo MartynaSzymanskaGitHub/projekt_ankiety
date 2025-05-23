@@ -11,23 +11,23 @@ export default class SurveyFiller extends LightningElement {
   @track isAscending = true;
   @track isSurveyExpired = false;
   @track selectedSurveyEndDate = null;
+  @track selectedStatus = 'all'; // all | active | expired
 
   connectedCallback() {
     this.loadSurveys();
   }
 
-loadSurveys() {
-  getAllSurveysWithSorting({ ascending: this.isAscending })
-    .then(data => {
-      const now = new Date();
-      this.surveys = data.map(s => ({
-        ...s,
-        isExpired: new Date(s.End_Date__c) < now
-      }));
-    })
-    .catch(err => this.toast('Error', err.body?.message || err, 'error'));
-}
-
+  loadSurveys() {
+    getAllSurveysWithSorting({ ascending: this.isAscending })
+      .then(data => {
+        const now = new Date();
+        this.surveys = data.map(s => ({
+          ...s,
+          isExpired: new Date(s.End_Date__c) < now
+        }));
+      })
+      .catch(err => this.toast('Error', err.body?.message || err, 'error'));
+  }
 
   toggleSortDirection() {
     this.isAscending = !this.isAscending;
@@ -49,6 +49,7 @@ loadSurveys() {
           this.toast('Error', 'Brak daty zakończenia ankiety.', 'error');
           return;
         }
+
         const surveyEndDate = new Date(surveyEndDateStr);
         const now = new Date();
         this.selectedSurveyEndDate = surveyEndDate;
@@ -101,6 +102,25 @@ loadSurveys() {
       .catch(err => {
         this.toast('Error', err.body?.message || 'Submission failed', 'error');
       });
+  }
+
+  handleStatusChange(e) {
+    this.selectedStatus = e.detail.value;
+  }
+
+  get statusOptions() {
+    return [
+      { label: 'Wszystkie', value: 'all' },
+      { label: 'Aktywne', value: 'active' },
+      { label: 'Zakończone', value: 'expired' }
+    ];
+  }
+
+  get filteredSurveys() {
+    if (this.selectedStatus === 'all') return this.surveys;
+    if (this.selectedStatus === 'active') return this.surveys.filter(s => !s.isExpired);
+    if (this.selectedStatus === 'expired') return this.surveys.filter(s => s.isExpired);
+    return this.surveys;
   }
 
   get sortIcon() {

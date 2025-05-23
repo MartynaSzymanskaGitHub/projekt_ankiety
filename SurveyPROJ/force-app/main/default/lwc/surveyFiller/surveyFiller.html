@@ -10,10 +10,19 @@
         class="slds-m-bottom_small">
       </lightning-button-icon>
 
+      <!-- Filtrowanie po statusie -->
+      <lightning-combobox
+        label="Filtruj ankiety"
+        value={selectedStatus}
+        options={statusOptions}
+        onchange={handleStatusChange}
+        class="slds-m-bottom_small">
+      </lightning-combobox>
+
       <!-- Lista ankiet -->
       <template if:true={surveys}>
         <p class="slds-text-heading_small">Wybierz ankietę:</p>
-        <template for:each={surveys} for:item="s">
+        <template for:each={filteredSurveys} for:item="s">
           <div key={s.Id} class="slds-box slds-m-around_small">
             <p><strong>{s.Title_c__c}</strong></p>
             <p>Zakończenie:
@@ -26,20 +35,21 @@
                 minute="2-digit">
               </lightning-formatted-date-time>
             </p>
-            <template if:false={s.isExpired}>
-                <lightning-button
-                  label="Wypełnij"
-                  data-id={s.Id}
-                  onclick={handleSurveyClick}
-                  class="slds-m-top_x-small">
-                </lightning-button>
-              </template>
-              <template if:true={s.isExpired}>
-                <p class="slds-text-color_error slds-m-top_x-small">
-                  Ankieta zakończona
-                </p>
-              </template>
 
+            <!-- Przyciski zależnie od statusu -->
+            <template if:false={s.isExpired}>
+              <lightning-button
+                label="Wypełnij"
+                data-id={s.Id}
+                onclick={handleSurveyClick}
+                class="slds-m-top_x-small">
+              </lightning-button>
+            </template>
+            <template if:true={s.isExpired}>
+              <p class="slds-text-color_error slds-m-top_x-small">
+                Ankieta zakończona
+              </p>
+            </template>
           </div>
         </template>
       </template>
