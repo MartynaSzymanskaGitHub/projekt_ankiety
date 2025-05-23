@@ -1,0 +1,39 @@
+<template>
+  <lightning-card title="Fill Survey" icon-name="utility:poll">
+    <div class="slds-p-around_medium">
+
+      <lightning-combobox
+        label="Select Survey"
+        placeholder="-- wybierz ankietę --"
+        options={surveyOptions}
+        value={selectedSurveyId}
+        onchange={handleSurveyChange}>
+      </lightning-combobox>
+
+      <template if:true={questions}>
+        <template for:each={questions} for:item="q">
+          <div key={q.Id} class="slds-box slds-m-top_medium">
+            <p class="slds-text-heading_small">{q.Question_Text__c}</p>
+              
+              <lightning-radio-group
+                name={q.Id}
+                options={q.options}
+                value={q.selected}
+                data-qid={q.Id}
+                onchange={handleResponse}>
+              </lightning-radio-group>
+
+          </div>
+        </template>
+
+        <lightning-button
+          variant="brand"
+          label="Submit Responses"
+          class="slds-m-top_medium"
+          onclick={submitResponses}>
+        </lightning-button>
+      </template>
+
+    </div>
+  </lightning-card>
+</template>

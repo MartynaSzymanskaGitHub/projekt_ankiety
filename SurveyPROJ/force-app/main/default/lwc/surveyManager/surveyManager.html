@@ -1,0 +1,13 @@
+<template>
+  <lightning-card title="Manage Surveys" icon-name="utility:table">
+    <div class="slds-p-around_medium">
+      <lightning-datatable
+        key-field="Id"
+        data={surveys}
+        columns={columns}
+        hide-checkbox-column
+        onrowaction={handleRowAction}>
+      </lightning-datatable>
+    </div>
+  </lightning-card>
+</template>

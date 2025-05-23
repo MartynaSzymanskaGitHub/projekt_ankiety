@@ -1,0 +1,45 @@
+<template>
+  <lightning-card title="Survey Results" icon-name="utility:table">
+    <div class="slds-p-around_medium">
+
+      <!-- wybór ankiety -->
+      <lightning-combobox
+        label="Select Survey"
+        placeholder="-- select survey --"
+        options={surveyOptions}
+        value={selectedSurveyId}
+        onchange={handleSurveyChange}>
+      </lightning-combobox>
+
+      <!-- tabela odpowiedzi -->
+      <template if:true={rowData}>
+        <table class="slds-table slds-table_cell-buffer slds-m-top_medium">
+          <thead>
+            <tr class="slds-line-height_reset">
+              <th scope="col">Question</th>
+              <th scope="col">Option</th>
+              <th scope="col">Responses</th>
+              <th scope="col">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template for:each={rowData} for:item="r">
+              <tr key={r.id}>
+                <td>{r.question}</td>
+                <td>{r.option}</td>
+                <td>{r.count}</td>
+                <td>{r.percent}</td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+
+        <!-- liczba odpowiedzi -->
+        <p class="slds-m-top_medium slds-text-title_bold">
+          Total responses submitted: {totalCount}
+        </p>
+      </template>
+
+    </div>
+  </lightning-card>
+</template>

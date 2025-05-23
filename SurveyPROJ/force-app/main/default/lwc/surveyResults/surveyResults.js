@@ -1,0 +1,46 @@
+import { LightningElement, track } from 'lwc';
+import getAllSurveys from '@salesforce/apex/SurveyController.getAllSurveys';
+import getSurveyStats from '@salesforce/apex/SurveyController.getSurveyStats';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+
+export default class SurveyResults extends LightningElement {
+  @track surveyOptions = [];
+  @track selectedSurveyId = '';
+  @track rowData = [];
+  @track totalCount = 0;
+
+  connectedCallback() {
+    getAllSurveys()
+      .then(data => {
+        this.surveyOptions = data.map(s => ({
+          label: s.Title_c__c,
+          value: s.Id
+        }));
+      });
+  }
+
+  handleSurveyChange(e) {
+    this.selectedSurveyId = e.detail.value;
+    getSurveyStats({ surveyId: this.selectedSurveyId })
+  .then(stats => {
+    const total = stats.reduce((sum, r) => sum + r.count, 0);
+
+    this.rowData = stats.map((r, idx) => ({
+      id: idx,
+      question: r.questionText,
+      option: r.choice,
+      count: r.count,
+      percent: total > 0 ? ((r.count / total) * 100).toFixed(1) + '%' : '0%'
+    }));
+
+    this.totalCount = total;
+  })
+      .catch(err => {
+        this.toast('Error', err.body?.message || err, 'error');
+      });
+  }
+
+  toast(title, message, variant) {
+    this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+  }
+}
