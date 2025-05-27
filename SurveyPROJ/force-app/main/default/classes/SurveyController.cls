@@ -98,31 +98,35 @@ public with sharing class SurveyController {
         ];
     }
 
-    @AuraEnabled
-    public static void submitResponses(List<Response_PROJ__c> responses, Id userLoginId) {
-        if (responses.isEmpty()) return;
-
-        Id surveyId = [
-            SELECT Survey__c FROM Question_PROJ__c
-            WHERE Id = :responses[0].Question_PROJ__c
-            LIMIT 1
-        ].Survey__c;
-
-        Boolean alreadySubmitted = [
-            SELECT COUNT()
-            FROM Response_PROJ__c
-            WHERE User_Login__c = :userLoginId
-            AND Question_PROJ__r.Survey__c = :surveyId
-        ] > 0;
-
-        if (alreadySubmitted) {
-            throw new AuraHandledException('You have already submitted this survey.');
-        }
-
-        for (Response_PROJ__c r : responses) {
-            r.User_Login__c = userLoginId;
-        }
-
-        insert responses;
+ @AuraEnabled
+public static void submitResponses(List<Response_PROJ__c> responses, Id userLoginId) {
+    if (responses.isEmpty()) {
+        throw new AuraHandledException('No responses to submit.');
     }
+
+    Id surveyId = [SELECT Survey__c FROM Question_PROJ__c WHERE Id = :responses[0].Question_PROJ__c LIMIT 1].Survey__c;
+    Survey_PROJ__c survey = [SELECT End_Date__c FROM Survey_PROJ__c WHERE Id = :surveyId LIMIT 1];
+
+    if (survey.End_Date__c != null && survey.End_Date__c < System.now()) {
+        throw new AuraHandledException('This survey has already expired.');
+    }
+
+    Boolean alreadySubmitted = [
+        SELECT COUNT()
+        FROM Response_PROJ__c
+        WHERE Question_PROJ__r.Survey__c = :surveyId
+        AND User_Login__c = :userLoginId
+    ] > 0;
+
+    if (alreadySubmitted) {
+        throw new AuraHandledException('You have already submitted this survey.');
+    }
+
+    for (Response_PROJ__c r : responses) {
+        r.User_Login__c = userLoginId;
+    }
+
+    insert responses;
+}
+
 }
