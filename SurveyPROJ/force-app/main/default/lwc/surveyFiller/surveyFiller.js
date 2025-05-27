@@ -27,17 +27,18 @@ connectedCallback() {
 }
 
 
-  loadSurveys() {
-    getAllSurveysWithSorting({ ascending: this.isAscending })
-      .then(data => {
-        const now = new Date();
-        this.surveys = data.map(s => ({
-          ...s,
-          isExpired: new Date(s.End_Date__c) < now
-        }));
-      })
-      .catch(err => this.toast('Error', err.body?.message || err, 'error'));
-  }
+loadSurveys() {
+  getAllSurveysWithSorting({ ascending: this.isAscending })
+    .then(data => {
+      const now = new Date();
+      this.surveys = data.map(s => ({
+        ...s,
+        isExpired: s.End_Date__c ? new Date(s.End_Date__c) < now : false
+      }));
+    })
+    .catch(err => this.toast('Error', err.body?.message || err, 'error'));
+}
+
 
   toggleSortDirection() {
     this.isAscending = !this.isAscending;
