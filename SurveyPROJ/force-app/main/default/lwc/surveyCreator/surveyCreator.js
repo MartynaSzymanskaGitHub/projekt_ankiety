@@ -14,6 +14,22 @@ export default class SurveyCreator extends LightningElement {
     { id: 1, text: '', choices: [{ id: uid(), value: '' }] }
   ];
   isSaving = false;
+  isAuthorized = false;
+
+  connectedCallback() {
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!user) {
+      window.location.href = '/lightning/n/Login';
+      return;
+    }
+
+    if (user.Role__c !== 'Admin') {
+      alert('Brak dostępu. Tylko administrator może tworzyć ankiety.');
+      window.location.href = '/lightning/n/Login'; 
+    }
+    this.isAuthorized = true;
+  }
 
   handleTitleChange(e) {
     this.title = e.target.value;

@@ -12,10 +12,20 @@ export default class SurveyFiller extends LightningElement {
   @track isSurveyExpired = false;
   @track selectedSurveyEndDate = null;
   @track selectedStatus = 'all'; // all | active | expired
+isAuthorized = false;
 
-  connectedCallback() {
-    this.loadSurveys();
+connectedCallback() {
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  if (!user) {
+    window.location.href = '/lightning/n/Login';
+    return;
   }
+
+  this.isAuthorized = true;
+  this.loadSurveys();
+}
+
 
   loadSurveys() {
     getAllSurveysWithSorting({ ascending: this.isAscending })

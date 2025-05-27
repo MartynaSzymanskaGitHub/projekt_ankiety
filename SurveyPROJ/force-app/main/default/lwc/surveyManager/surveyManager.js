@@ -1,12 +1,13 @@
 import { LightningElement, track, wire } from 'lwc';
 import getAllSurveys from '@salesforce/apex/SurveyController.getAllSurveys';
-import deleteSurvey  from '@salesforce/apex/SurveyController.deleteSurvey';
+import deleteSurvey from '@salesforce/apex/SurveyController.deleteSurvey';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 
 export default class SurveyManager extends LightningElement {
   @track surveys;
   wiredSurveys;
+  isAuthorized = false;
 
   columns = [
     { label: 'Title', fieldName: 'Title_c__c' },
@@ -19,17 +20,30 @@ export default class SurveyManager extends LightningElement {
     }
   ];
 
-  /* pobierz ankiety */
+  connectedCallback() {
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!user) {
+      window.location.href = '/lightning/n/Login';
+    } 
+    
+    if (user.Role__c !== 'Admin') {
+      alert('Brak dostępu. Tylko administrator może tworzyć ankiety.');
+      window.location.href = '/lightning/n/Login'; 
+    }
+      this.isAuthorized = true;
+    
+  }
+
   @wire(getAllSurveys)
   wiredResult(result) {
     this.wiredSurveys = result;
     if (result.data) this.surveys = result.data;
   }
 
-  /* akcja wiersza */
   handleRowAction(event) {
     const { name } = event.detail.action;
-    const surveyId  = event.detail.row.Id;
+    const surveyId = event.detail.row.Id;
 
     if (name === 'delete') {
       deleteSurvey({ surveyId })

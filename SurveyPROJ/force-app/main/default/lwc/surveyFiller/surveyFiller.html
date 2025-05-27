@@ -1,4 +1,6 @@
 <template>
+    <template if:true={isAuthorized}>
+      <c-logout-button></c-logout-button>
   <lightning-card title="Fill Survey" icon-name="utility:poll">
     <div class="slds-p-around_medium">
 
@@ -86,4 +88,5 @@
 
     </div>
   </lightning-card>
+  </template>
 </template>
