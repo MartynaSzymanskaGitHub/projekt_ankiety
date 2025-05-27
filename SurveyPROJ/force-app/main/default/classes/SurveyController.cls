@@ -78,11 +78,17 @@ public with sharing class SurveyController {
         Survey_PROJ__c survey,
         List<Question_PROJ__c> questions
     ) {
+        Boolean isNew = (survey.Id == null);
         upsert survey;
+
         for (Question_PROJ__c q : questions) {
             q.Survey__c = survey.Id;
         }
         upsert questions;
+
+        if (isNew) {
+            SurveyMailer.sendSurveyNotification(survey);
+        }
         return survey;
     }
 

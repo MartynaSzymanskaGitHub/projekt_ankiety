@@ -145,12 +145,14 @@ export default class SurveyCreator extends LightningElement {
         this.questions = [
           { id: 1, text: '', choices: [{ id: uid(), value: '' }] }
         ];
+        window.location.reload();
       })
       .catch(err => {
         this.toast('Error', err.body?.message || err, 'error');
       })
       .finally(() => (this.isSaving = false));
   }
+
 
   toast(title, message, variant) {
     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
