@@ -2,6 +2,7 @@ import { LightningElement, track } from 'lwc';
 import getAllSurveysWithSorting from '@salesforce/apex/SurveyController.getAllSurveysWithSorting';
 import getQuestions from '@salesforce/apex/SurveyController.getQuestions';
 import submitResponsesApex from '@salesforce/apex/SurveyController.submitResponses';
+import checkUserSubmitted from '@salesforce/apex/SurveyController.hasUserSubmitted';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class SurveyFiller extends LightningElement {
@@ -12,33 +13,41 @@ export default class SurveyFiller extends LightningElement {
   @track isSurveyExpired = false;
   @track selectedSurveyEndDate = null;
   @track selectedStatus = 'all'; // all | active | expired
-isAuthorized = false;
+  @track alreadySubmittedMap = {};
+  isAuthorized = false;
 
-connectedCallback() {
-  const user = JSON.parse(localStorage.getItem('user'));
+  userLoginId; // <-- dodane
 
-  if (!user) {
-    window.location.href = '/lightning/n/Login';
-    return;
+  connectedCallback() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      window.location.href = '/lightning/n/Login';
+      return;
+    }
+
+    this.userLoginId = user.Id; // <-- zapamiętujemy ID z User_Login__c
+    this.isAuthorized = true;
+    this.loadSurveys();
   }
 
-  this.isAuthorized = true;
-  this.loadSurveys();
-}
-
-
-loadSurveys() {
-  getAllSurveysWithSorting({ ascending: this.isAscending })
-    .then(data => {
+  async loadSurveys() {
+    try {
+      const data = await getAllSurveysWithSorting({ ascending: this.isAscending });
       const now = new Date();
-      this.surveys = data.map(s => ({
-        ...s,
-        isExpired: s.End_Date__c ? new Date(s.End_Date__c) < now : false
-      }));
-    })
-    .catch(err => this.toast('Error', err.body?.message || err, 'error'));
-}
 
+      const results = await Promise.all(
+        data.map(s => checkUserSubmitted({ surveyId: s.Id, userLoginId: this.userLoginId }))
+      );
+
+      this.surveys = data.map((s, index) => ({
+        ...s,
+        isExpired: s.End_Date__c ? new Date(s.End_Date__c) < now : false,
+        alreadySubmitted: results[index]
+      }));
+    } catch (err) {
+      this.toast('Error', err.body?.message || err.message || err, 'error');
+    }
+  }
 
   toggleSortDirection() {
     this.isAscending = !this.isAscending;
@@ -85,7 +94,7 @@ loadSurveys() {
     );
   }
 
-  submitResponses() {
+  async submitResponses() {
     if (this.isSurveyExpired) {
       this.toast('Error', 'Survey has expired. You cannot submit answers.', 'error');
       return;
@@ -103,16 +112,21 @@ loadSurveys() {
       return;
     }
 
-    submitResponsesApex({ responses: payload })
-      .then(() => {
-        this.toast('Thank you!', 'Your survey has been submitted.', 'success');
-        this.selectedSurveyId = '';
-        this.questions = null;
-        this.selectedSurveyEndDate = null;
-      })
-      .catch(err => {
-        this.toast('Error', err.body?.message || 'Submission failed', 'error');
-      });
+    try {
+      await submitResponsesApex({ responses: payload, userLoginId: this.userLoginId });
+
+      this.toast('Thank you!', 'Your survey has been submitted.', 'success');
+
+      this.selectedSurveyId = '';
+      this.questions = null;
+      this.selectedSurveyEndDate = null;
+
+      // 🔁 Odśwież stronę
+      window.location.reload();
+
+    } catch (err) {
+      this.toast('Error', err.body?.message || 'Submission failed', 'error');
+    }
   }
 
   handleStatusChange(e) {
@@ -128,10 +142,19 @@ loadSurveys() {
   }
 
   get filteredSurveys() {
-    if (this.selectedStatus === 'all') return this.surveys;
-    if (this.selectedStatus === 'active') return this.surveys.filter(s => !s.isExpired);
-    if (this.selectedStatus === 'expired') return this.surveys.filter(s => s.isExpired);
-    return this.surveys;
+    let filtered = this.surveys;
+
+    if (this.selectedStatus === 'active') {
+      filtered = filtered.filter(s => !s.isExpired);
+    } else if (this.selectedStatus === 'expired') {
+      filtered = filtered.filter(s => s.isExpired);
+    }
+
+    return [...filtered].sort((a, b) => {
+      const aDate = a.End_Date__c ? new Date(a.End_Date__c) : new Date(8640000000000000);
+      const bDate = b.End_Date__c ? new Date(b.End_Date__c) : new Date(8640000000000000);
+      return this.isAscending ? aDate - bDate : bDate - aDate;
+    });
   }
 
   get sortIcon() {
