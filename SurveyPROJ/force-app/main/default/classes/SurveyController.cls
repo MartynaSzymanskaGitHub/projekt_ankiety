@@ -138,46 +138,83 @@ public with sharing class SurveyController {
 
 @AuraEnabled
 public static void submitSurveyRating(Id surveyId, Integer rating) {
-    Id currentUser = [
-        SELECT Id FROM User_Login__c WHERE CreatedById = :UserInfo.getUserId() LIMIT 1
+    Id currentUserLoginId = [
+        SELECT Id FROM User_Login__c WHERE CreatedById = :UserInfo.getUserId()
+        LIMIT 1
     ].Id;
 
-    List<Response_PROJ__c> responses = [
-        SELECT Id FROM Response_PROJ__c
-        WHERE Question_PROJ__r.Survey__c = :surveyId
-        AND User_Login__c = :currentUser
+    // Sprawdź, czy użytkownik już ocenił tę ankietę
+    List<SurveyRating_PROJ__c> existing = [
+        SELECT Id
+        FROM SurveyRating_PROJ__c
+        WHERE Survey_PROJ__c = :surveyId AND User_Login__c = :currentUserLoginId
+        LIMIT 1
     ];
 
-    if (responses.isEmpty()) {
-        throw new AuraHandledException('Nie znaleziono odpowiedzi do ocenienia.');
+    if (!existing.isEmpty()) {
+        throw new AuraHandledException('Już oceniłeś tę ankietę.');
     }
 
-    for (Response_PROJ__c r : responses) {
-        r.Rating__c = rating;
-    }
+    // Utwórz nową ocenę
+    SurveyRating_PROJ__c newRating = new SurveyRating_PROJ__c();
+    newRating.Survey_PROJ__c = surveyId;
+    newRating.User_Login__c = currentUserLoginId;
+    newRating.Rating__c = rating;
 
-    update responses;
+    insert newRating;
 }
+
+
+
+
 
 
 
 @AuraEnabled(cacheable=true)
 public static List<Survey_PROJ__c> getFilledSurveys(Id userLoginId) {
+    // Pobierz ID ankiet, które użytkownik już ocenił
+    Set<Id> ratedSurveyIds = new Set<Id>();
+    for (SurveyRating_PROJ__c sr : [
+        SELECT Survey_PROJ__c
+        FROM SurveyRating_PROJ__c
+        WHERE User_Login__c = :userLoginId
+    ]) {
+        ratedSurveyIds.add(sr.Survey_PROJ__c);
+    }
+
+    // Pobierz ID ankiet, które użytkownik wypełnił
     Set<Id> filledSurveyIds = new Set<Id>();
-    
     for (Response_PROJ__c r : [
         SELECT Question_PROJ__r.Survey__c
         FROM Response_PROJ__c
         WHERE User_Login__c = :userLoginId
     ]) {
-        filledSurveyIds.add(r.Question_PROJ__r.Survey__c);
+        Id sid = r.Question_PROJ__r.Survey__c;
+        if (!ratedSurveyIds.contains(sid)) {
+            filledSurveyIds.add(sid);
+        }
     }
 
-    return [SELECT Id, Title_c__c FROM Survey_PROJ__c WHERE Id IN :filledSurveyIds];
+    if (filledSurveyIds.isEmpty()) return new List<Survey_PROJ__c>();
+
+    return [
+        SELECT Id, Title_c__c, End_Date__c
+        FROM Survey_PROJ__c
+        WHERE Id IN :filledSurveyIds
+        ORDER BY Title_c__c
+    ];
 }
 
+@AuraEnabled(cacheable=true)
+public static Decimal getAverageRating(Id surveyId) {
+    AggregateResult result = [
+        SELECT AVG(Rating__c) avgRating
+        FROM SurveyRating_PROJ__c
+        WHERE Survey_PROJ__c = :surveyId
+    ];
 
-
+    return (Decimal)result.get('avgRating');
+}
 
 
 }

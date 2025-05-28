@@ -1,6 +1,7 @@
 import { LightningElement, track } from 'lwc';
 import getAllSurveys from '@salesforce/apex/SurveyController.getAllSurveys';
 import getSurveyStats from '@salesforce/apex/SurveyController.getSurveyStats';
+import getAverageRating from '@salesforce/apex/SurveyController.getAverageRating';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class SurveyResults extends LightningElement {
@@ -8,6 +9,7 @@ export default class SurveyResults extends LightningElement {
   @track selectedSurveyId = '';
   @track rowData = [];
   @track totalCount = 0;
+  @track averageRating = 0;
   @track isAuthorized = false;
 
   connectedCallback() {
@@ -20,7 +22,6 @@ export default class SurveyResults extends LightningElement {
 
     this.isAuthorized = true;
 
-    // Po zalogowaniu załaduj listę ankiet
     getAllSurveys()
       .then(data => {
         this.surveyOptions = data.map(s => ({
@@ -39,7 +40,6 @@ export default class SurveyResults extends LightningElement {
     getSurveyStats({ surveyId: this.selectedSurveyId })
       .then(stats => {
         const total = stats.reduce((sum, r) => sum + r.count, 0);
-
         this.rowData = stats.map((r, idx) => ({
           id: idx,
           question: r.questionText,
@@ -47,11 +47,18 @@ export default class SurveyResults extends LightningElement {
           count: r.count,
           percent: total > 0 ? ((r.count / total) * 100).toFixed(1) + '%' : '0%'
         }));
-
         this.totalCount = total;
       })
       .catch(err => {
         this.toast('Error', err.body?.message || err.message, 'error');
+      });
+
+    getAverageRating({ surveyId: this.selectedSurveyId })
+      .then(avg => {
+        this.averageRating = avg !== null ? avg.toFixed(2) : 'Brak ocen';
+      })
+      .catch(err => {
+        this.toast('Error', 'Nie udało się załadować średniej oceny', 'error');
       });
   }
 

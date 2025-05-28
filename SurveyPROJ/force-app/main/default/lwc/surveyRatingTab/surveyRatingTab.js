@@ -11,6 +11,10 @@ export default class SurveyRatingTab extends LightningElement {
   userLoginId;
 
   connectedCallback() {
+    this.loadSurveys();
+  }
+
+  loadSurveys() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
       this.isEmpty = true;
@@ -22,9 +26,11 @@ export default class SurveyRatingTab extends LightningElement {
 
     getFilledSurveys({ userLoginId: this.userLoginId })
       .then(data => {
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
           this.isEmpty = true;
+          this.surveyOptions = [];
         } else {
+          this.isEmpty = false;
           this.surveyOptions = data.map(s => ({
             label: s.Title_c__c,
             value: s.Id
@@ -59,6 +65,7 @@ export default class SurveyRatingTab extends LightningElement {
         this.showToast('Sukces', 'Ocena została zapisana.', 'success');
         this.rating = '';
         this.selectedSurveyId = '';
+        window.location.reload();
       })
       .catch(error => {
         this.showToast('Błąd', error.body?.message || error.message, 'error');
