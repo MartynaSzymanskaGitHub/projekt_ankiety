@@ -1,0 +1,37 @@
+<template>
+  <lightning-card title="Oceń wypełnioną ankietę" icon-name="utility:feedback">
+    <div class="slds-p-around_medium">
+      <template if:true={surveyOptions.length}>
+        <lightning-combobox
+          name="survey"
+          label="Wybierz ankietę"
+          value={selectedSurveyId}
+          placeholder="Wybierz ankietę"
+          options={surveyOptions}
+          onchange={handleSurveyChange}>
+        </lightning-combobox>
+
+        <lightning-input
+          type="number"
+          label="Twoja ocena (1–5)"
+          value={rating}
+          min="1"
+          max="5"
+          class="slds-m-top_small"
+          onchange={handleRatingChange}>
+        </lightning-input>
+
+        <lightning-button
+          label="Wyślij ocenę"
+          variant="brand"
+          class="slds-m-top_medium"
+          onclick={handleSubmitRating}>
+        </lightning-button>
+      </template>
+
+      <template if:true={isEmpty}>
+        <p>Brak wypełnionych ankiet do oceny.</p>
+      </template>
+    </div>
+  </lightning-card>
+</template>

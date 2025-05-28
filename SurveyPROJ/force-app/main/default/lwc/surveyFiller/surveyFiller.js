@@ -121,7 +121,7 @@ export default class SurveyFiller extends LightningElement {
       this.questions = null;
       this.selectedSurveyEndDate = null;
 
-      // 🔁 Odśwież stronę
+
       window.location.reload();
 
     } catch (err) {
