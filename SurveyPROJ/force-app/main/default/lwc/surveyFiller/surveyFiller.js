@@ -12,11 +12,12 @@ export default class SurveyFiller extends LightningElement {
   @track isAscending = true;
   @track isSurveyExpired = false;
   @track selectedSurveyEndDate = null;
-  @track selectedStatus = 'all'; // all | active | expired
+  @track selectedStatus = 'all';
   @track alreadySubmittedMap = {};
+  @track showModal = false;
   isAuthorized = false;
 
-  userLoginId; // <-- dodane
+  userLoginId;
 
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -24,8 +25,7 @@ export default class SurveyFiller extends LightningElement {
       window.location.href = '/lightning/n/Login';
       return;
     }
-
-    this.userLoginId = user.Id; // <-- zapamiętujemy ID z User_Login__c
+    this.userLoginId = user.Id;
     this.isAuthorized = true;
     this.loadSurveys();
   }
@@ -83,10 +83,14 @@ export default class SurveyFiller extends LightningElement {
           selected: q.Is_MultiSelect__c ? [] : ''
         }));
 
+        this.showModal = true;
       })
       .catch(err => this.toast('Error', err.body?.message || err, 'error'));
   }
 
+  closeModal() {
+    this.showModal = false;
+  }
 
   handleResponse(e) {
     const qid = e.target.dataset.qid;
@@ -94,17 +98,9 @@ export default class SurveyFiller extends LightningElement {
 
     this.questions = this.questions.map(q => {
       if (q.Id !== qid) return q;
-
-      // jeśli checkbox-group
-      if (q.Is_MultiSelect__c) {
-        return { ...q, selected: selectedValue }; // to będzie tablica []
-      }
-
-      // jeśli radio-group
-      return { ...q, selected: selectedValue }; // string
+      return { ...q, selected: selectedValue };
     });
   }
-
 
   async submitResponses() {
     if (this.isSurveyExpired) {
@@ -136,18 +132,18 @@ export default class SurveyFiller extends LightningElement {
     try {
       await submitResponsesApex({ responses: payload, userLoginId: this.userLoginId });
 
-      this.toast('Thank you!', 'Your survey has been submitted.', 'success');
+      this.toast('Dziękujemy!', 'Twoje odpowiedzi zostały zapisane.', 'success');
 
       this.selectedSurveyId = '';
       this.questions = null;
       this.selectedSurveyEndDate = null;
+      this.showModal = false;
 
       window.location.reload();
     } catch (err) {
       this.toast('Error', err.body?.message || 'Submission failed', 'error');
     }
   }
-
 
   handleStatusChange(e) {
     this.selectedStatus = e.detail.value;

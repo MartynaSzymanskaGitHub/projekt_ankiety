@@ -4,7 +4,6 @@
     <lightning-card title="Fill Survey" icon-name="utility:poll">
       <div class="slds-p-around_medium">
 
-        <!-- Przycisk do zmiany sortowania -->
         <lightning-button-icon
           icon-name={sortIcon}
           alternative-text="Zmień sortowanie"
@@ -12,7 +11,6 @@
           class="slds-m-bottom_small">
         </lightning-button-icon>
 
-        <!-- Filtrowanie po statusie -->
         <lightning-combobox
           label="Filtruj ankiety"
           value={selectedStatus}
@@ -21,7 +19,6 @@
           class="slds-m-bottom_small">
         </lightning-combobox>
 
-        <!-- Lista ankiet -->
         <template if:true={surveys}>
           <p class="slds-text-heading_small">Wybierz ankietę:</p>
           <template for:each={filteredSurveys} for:item="s">
@@ -38,7 +35,6 @@
                 </lightning-formatted-date-time>
               </p>
 
-              <!-- Obsługa przycisków -->
               <template if:false={s.isExpired}>
                 <template if:false={s.alreadySubmitted}>
                   <lightning-button
@@ -64,51 +60,65 @@
           </template>
         </template>
 
-        <!-- Pytania ankiety -->
-        <template if:true={questions}>
-          <template if:true={isSurveyExpired}>
-            <p class="slds-text-color_error slds-m-top_medium">
-              Ta ankieta jest już zakończona. Nie można jej wypełnić.
-            </p>
-          </template>
-          <template if:false={isSurveyExpired}>
-            <template for:each={questions} for:item="q">
-              <div key={q.Id} class="slds-box slds-m-top_medium">
-                <p class="slds-text-heading_small">{q.Question_Text__c}</p>
-
-                <template if:true={q.Is_MultiSelect__c}>
-                  <lightning-checkbox-group
-                    name={q.Id}
-                    options={q.options}
-                    value={q.selected}
-                    data-qid={q.Id}
-                    onchange={handleResponse}>
-                  </lightning-checkbox-group>
-                </template>
-
-                <template if:false={q.Is_MultiSelect__c}>
-                  <lightning-radio-group
-                    name={q.Id}
-                    options={q.options}
-                    value={q.selected}
-                    data-qid={q.Id}
-                    onchange={handleResponse}>
-                  </lightning-radio-group>
-                </template>
-              </div>
-            </template>
-
-
-            <lightning-button
-              variant="brand"
-              label="Submit Responses"
-              class="slds-m-top_medium"
-              onclick={submitResponses}>
-            </lightning-button>
-          </template>
-        </template>
-
       </div>
     </lightning-card>
+
+    <!-- MODAL -->
+    <template if:true={showModal}>
+      <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 class="slds-text-heading_medium">Wypełnij ankietę</h2>
+            <button class="slds-button slds-modal__close" onclick={closeModal}>
+              <lightning-icon icon-name="utility:close" alternative-text="Zamknij" size="small"></lightning-icon>
+            </button>
+          </header>
+
+          <div class="slds-modal__content slds-p-around_medium">
+            <template if:true={questions}>
+              <template if:true={isSurveyExpired}>
+                <p class="slds-text-color_error slds-m-top_medium">
+                  Ta ankieta jest już zakończona. Nie można jej wypełnić.
+                </p>
+              </template>
+              <template if:false={isSurveyExpired}>
+                <template for:each={questions} for:item="q">
+                  <div key={q.Id} class="slds-box slds-m-top_medium">
+                    <p class="slds-text-heading_small">{q.Question_Text__c}</p>
+
+                    <template if:true={q.Is_MultiSelect__c}>
+                      <lightning-checkbox-group
+                        name={q.Id}
+                        options={q.options}
+                        value={q.selected}
+                        data-qid={q.Id}
+                        onchange={handleResponse}>
+                      </lightning-checkbox-group>
+                    </template>
+
+                    <template if:false={q.Is_MultiSelect__c}>
+                      <lightning-radio-group
+                        name={q.Id}
+                        options={q.options}
+                        value={q.selected}
+                        data-qid={q.Id}
+                        onchange={handleResponse}>
+                      </lightning-radio-group>
+                    </template>
+                  </div>
+                </template>
+              </template>
+            </template>
+          </div>
+
+          <footer class="slds-modal__footer">
+            <lightning-button label="Anuluj" onclick={closeModal}></lightning-button>
+            <lightning-button variant="brand" label="Wyślij odpowiedzi" onclick={submitResponses}></lightning-button>
+          </footer>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
   </template>
 </template>
