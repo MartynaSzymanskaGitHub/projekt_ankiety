@@ -6,6 +6,44 @@ public with sharing class SurveyController {
         @AuraEnabled public Integer count;
     }
 
+
+ public class SurveyAverageRating {
+        @AuraEnabled public String  title;      // będzie s.title
+        @AuraEnabled public Decimal avgRating;  // będzie s.avgRating
+
+        public SurveyAverageRating(String title, Decimal avgRating) {
+            this.title     = title;
+            this.avgRating = avgRating;
+        }
+    }
+
+
+@AuraEnabled(cacheable=true)
+    public static List<SurveyAverageRating> getTop3RatedSurveysDynamic() {
+        AggregateResult[] results = [
+            SELECT Survey_PROJ__c,
+                   Survey_PROJ__r.Title_c__c   title,
+                   AVG(Rating__c)              avgRating
+            FROM   SurveyRating_PROJ__c
+            WHERE  Rating__c != null AND Survey_PROJ__r.Title_c__c != null
+            GROUP  BY Survey_PROJ__c, Survey_PROJ__r.Title_c__c
+            ORDER  BY AVG(Rating__c) DESC
+            LIMIT  3
+        ];
+
+        List<SurveyAverageRating> outList = new List<SurveyAverageRating>();
+        for (AggregateResult r : results) {
+            String  title = (String)  r.get('title');
+            Decimal rating = (Decimal) r.get('avgRating');
+
+            if (title != null && rating != null) {
+                outList.add( new SurveyAverageRating(title, rating) );
+            }
+        }
+
+        return outList;
+    }
+
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveysWithSorting(Boolean ascending) {
         String direction = ascending ? 'ASC' : 'DESC';

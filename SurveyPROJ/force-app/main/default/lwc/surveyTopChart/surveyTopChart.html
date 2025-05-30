@@ -1,0 +1,25 @@
+<template>
+    <lightning-card>
+        <div class="slds-text-align_center slds-text-heading_medium slds-m-top_medium">
+            Top 3 Ankiety – Ocena
+        </div>
+
+        <div class="chart-container slds-p-around_medium">
+            <template if:true={bars}>
+                <template for:each={bars} for:item="bar">
+                    <div key={bar.title} class="row">
+                        <span class="label" title={bar.title}>{bar.title}</span>
+                        <div class="track">
+                            <div class="fill" style={bar.style}></div>
+                        </div>
+                        <span class="value">{bar.avgRating}</span>
+                    </div>
+                </template>
+            </template>
+            <template if:false={bars}>
+                <p>Brak danych do wyświetlenia.</p>
+            </template>
+        </div>
+
+    </lightning-card>
+</template>
