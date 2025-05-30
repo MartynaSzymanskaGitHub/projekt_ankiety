@@ -25,7 +25,7 @@ export default class SurveyRatingTab extends LightningElement {
     this.userRole    = user.Role__c;
 
     if (!ALLOWED_ROLES.includes(this.userRole)) {
-      alert('Tylko role „User” i „Worker” mogą oceniać ankiety.');
+      alert('User and Worker can rate the surveys.');
       window.location.href = '/lightning/n/Login';
       return;
     }

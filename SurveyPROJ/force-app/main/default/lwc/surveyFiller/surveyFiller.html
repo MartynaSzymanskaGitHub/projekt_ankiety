@@ -1,9 +1,11 @@
 <template>
   <template if:true={isAuthorized}>
+    <!-- przycisk wylogowania -->
     <c-logout-button></c-logout-button>
+
     <lightning-card title="Fill Survey" icon-name="utility:poll">
       <div class="slds-p-around_medium">
-
+        <!-- przełącznik kierunku sortowania -->
         <lightning-button-icon
           icon-name={sortIcon}
           alternative-text="Zmień sortowanie"
@@ -11,20 +13,24 @@
           class="slds-m-bottom_small">
         </lightning-button-icon>
 
+        <!-- ▼ NOWE: wybór kategorii zamiast statusu ▼ -->
         <lightning-combobox
-          label="Filtruj ankiety"
-          value={selectedStatus}
-          options={statusOptions}
-          onchange={handleStatusChange}
+          label="Kategoria"
+          value={selectedCategory}
+          options={categoryOptions}
+          onchange={handleCategoryChange}
           class="slds-m-bottom_small">
         </lightning-combobox>
+        <!-- ▲ NOWE ▲ -->
 
+        <!-- lista ankiet -->
         <template if:true={surveys}>
           <p class="slds-text-heading_small">Wybierz ankietę:</p>
+
           <template for:each={filteredSurveys} for:item="s">
             <div key={s.Id} class="slds-box slds-m-around_small">
               <p><strong>{s.Title_c__c}</strong></p>
-                  <p>Kategoria: {s.Category_PROJ__r.Name}</p>
+              <p>Kategoria: {s.Category_PROJ__r.Name}</p>
               <p>Zakończenie:
                 <lightning-formatted-date-time
                   value={s.End_Date__c}
@@ -36,6 +42,7 @@
                 </lightning-formatted-date-time>
               </p>
 
+              <!-- przycisk / statusy -->
               <template if:false={s.isExpired}>
                 <template if:false={s.alreadySubmitted}>
                   <lightning-button
@@ -60,11 +67,10 @@
             </div>
           </template>
         </template>
-
       </div>
     </lightning-card>
 
-    <!-- MODAL -->
+    <!-- ========== MODAL ========== -->
     <template if:true={showModal}>
       <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
         <div class="slds-modal__container">
@@ -82,11 +88,13 @@
                   Ta ankieta jest już zakończona. Nie można jej wypełnić.
                 </p>
               </template>
+
               <template if:false={isSurveyExpired}>
                 <template for:each={questions} for:item="q">
                   <div key={q.Id} class="slds-box slds-m-top_medium">
                     <p class="slds-text-heading_small">{q.Question_Text__c}</p>
 
+                    <!-- wielokrotny wybór -->
                     <template if:true={q.Is_MultiSelect__c}>
                       <lightning-checkbox-group
                         name={q.Id}
@@ -97,6 +105,7 @@
                       </lightning-checkbox-group>
                     </template>
 
+                    <!-- pojedynczy wybór -->
                     <template if:false={q.Is_MultiSelect__c}>
                       <lightning-radio-group
                         name={q.Id}
@@ -120,6 +129,5 @@
       </section>
       <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
-
   </template>
 </template>

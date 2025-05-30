@@ -28,7 +28,7 @@ export default class SurveyManager extends LightningElement {
     } 
     
     if (user.Role__c !== 'Admin') {
-      alert('Brak dostępu. Tylko administrator może tworzyć ankiety.');
+      alert('Unauthorized role. Sending to loading page...');
       window.location.href = '/lightning/n/Login'; 
     }
       this.isAuthorized = true;

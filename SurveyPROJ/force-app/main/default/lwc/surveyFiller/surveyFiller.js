@@ -8,24 +8,34 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 const ALLOWED_ROLES = ['User', 'Worker'];
 
 export default class SurveyFiller extends LightningElement {
-  @track surveys = [];
-  @track selectedSurveyId = '';
-  @track questions = null;
-  @track isAscending = true;
-  @track isSurveyExpired = false;
-  @track selectedSurveyEndDate = null;
-  @track selectedStatus = 'all';
-  @track alreadySubmittedMap = {};
-  @track showModal = false;
-  isAuthorized = false;
+  /* ▸ dane ankiet */
+  @track surveys              = [];
+  @track alreadySubmittedMap   = {};
 
+  /* ▸ modal & pytania */
+  @track selectedSurveyId      = '';
+  @track questions             = null;
+  @track showModal             = false;
+  @track isSurveyExpired       = false;
+  @track selectedSurveyEndDate = null;
+
+  /* ▸ sortowanie */
+  @track isAscending           = true;
+
+  /* ▸ filtrowanie po kategorii */
+  @track selectedCategory      = 'all';
+  @track categories            = []; // lista unikalnych kategorii
+
+  /* ▸ autoryzacja */
+  isAuthorized = false;
   userLoginId;
   userRole;
 
-    connectedCallback() {
+  /* ────────────────────────────────────── */
+  /* lifecycle */
+  connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
 
-    /* brak danych logowania → przenosimy do /Login */
     if (!user) {
       window.location.href = '/lightning/n/Login';
       return;
@@ -34,9 +44,8 @@ export default class SurveyFiller extends LightningElement {
     this.userLoginId = user.Id;
     this.userRole    = user.Role__c;
 
-    /* ─── autoryzacja roli ─── */
     if (!ALLOWED_ROLES.includes(this.userRole)) {
-      alert('Tylko role „User” i „Worker” mogą wypełniać ankiety.');
+      alert('Only User and worker can complete the surveys.');
       window.location.href = '/lightning/n/Login';
       return;
     }
@@ -45,62 +54,88 @@ export default class SurveyFiller extends LightningElement {
     this.loadSurveys();
   }
 
+  /* ────────────────────────────────────── */
+  /* pobieranie danych */
   async loadSurveys() {
     try {
       const data = await getSurveysForUser({ userLoginId: this.userLoginId });
       const now  = new Date();
 
+      /* sprawdź, które ankiety użytkownik już wypełnił */
       const submitted = await Promise.all(
         data.map(s => checkUserSubmitted({ surveyId: s.Id, userLoginId: this.userLoginId }))
       );
 
+      /* przygotuj dane + status wygaszenia */
       this.surveys = data.map((s, i) => ({
         ...s,
-        isExpired      : s.End_Date__c ? new Date(s.End_Date__c) < now : false,
-        alreadySubmitted : submitted[i]
+        isExpired       : s.End_Date__c ? new Date(s.End_Date__c) < now : false,
+        alreadySubmitted: submitted[i]
       }));
+
+      /* zbuduj listę unikalnych kategorii */
+      const catSet = new Set();
+      this.surveys.forEach(s => {
+        if (s.Category_PROJ__r?.Name) {
+          catSet.add(s.Category_PROJ__r.Name);
+        }
+      });
+      this.categories = Array.from(catSet).sort();
     } catch (err) {
       this.toast('Error', err.body?.message || err.message, 'error');
     }
   }
 
+  /* ────────────────────────────────────── */
+  /* obsługa UI */
   toggleSortDirection() {
     this.isAscending = !this.isAscending;
-    this.loadSurveys();
+    /* sortujemy w getterze, więc nie trzeba ponownie pobierać danych */
   }
 
-  handleSurveyClick(e) {
-    this.selectedSurveyId = e.target.dataset.id;
-    this.questions = null;
-    this.isSurveyExpired = false;
+  /* ▼ NOWE: zmiana kategorii ▼ */
+  handleCategoryChange(e) {
+    this.selectedCategory = e.detail.value;
+  }
+  /* ▲ NOWE ▲ */
+
+  async handleSurveyClick(e) {
+    this.selectedSurveyId      = e.target.dataset.id;
+    this.questions             = null;
+    this.isSurveyExpired       = false;
     this.selectedSurveyEndDate = null;
 
-    getQuestions({ surveyId: this.selectedSurveyId })
-      .then(data => {
-        if (!data.length) return;
+    try {
+      const data = await getQuestions({ surveyId: this.selectedSurveyId });
 
-        const surveyEndDateStr = data[0].Survey__r?.End_Date__c;
-        if (!surveyEndDateStr) {
-          this.toast('Error', 'Brak daty zakończenia ankiety.', 'error');
-          return;
-        }
+      if (!data.length) {
+        this.toast('Error', 'Add at least one question to the survey.', 'error');
+        return;
+      }
 
-        const surveyEndDate = new Date(surveyEndDateStr);
-        const now = new Date();
-        this.selectedSurveyEndDate = surveyEndDate;
-        this.isSurveyExpired = surveyEndDate < now;
+      const surveyEndDateStr = data[0].Survey__r?.End_Date__c;
+      if (!surveyEndDateStr) {
+        this.toast('Error', 'Add end date to survey.', 'error');
+        return;
+      }
 
-        this.questions = data.map(q => ({
-          ...q,
-          options: q.Choices__c
-            ? q.Choices__c.split(';').map(c => ({ label: c, value: c }))
-            : [],
-          selected: q.Is_MultiSelect__c ? [] : ''
-        }));
+      const surveyEndDate = new Date(surveyEndDateStr);
+      const now           = new Date();
+      this.selectedSurveyEndDate = surveyEndDate;
+      this.isSurveyExpired       = surveyEndDate < now;
 
-        this.showModal = true;
-      })
-      .catch(err => this.toast('Error', err.body?.message || err, 'error'));
+      this.questions = data.map(q => ({
+        ...q,
+        options : q.Choices__c
+          ? q.Choices__c.split(';').map(c => ({ label: c, value: c }))
+          : [],
+        selected: q.Is_MultiSelect__c ? [] : ''
+      }));
+
+      this.showModal = true;
+    } catch (err) {
+      this.toast('Error', err.body?.message || err, 'error');
+    }
   }
 
   closeModal() {
@@ -108,15 +143,16 @@ export default class SurveyFiller extends LightningElement {
   }
 
   handleResponse(e) {
-    const qid = e.target.dataset.qid;
-    const selectedValue = e.detail.value;
+    const qid            = e.target.dataset.qid;
+    const selectedValue  = e.detail.value;
 
-    this.questions = this.questions.map(q => {
-      if (q.Id !== qid) return q;
-      return { ...q, selected: selectedValue };
-    });
+    this.questions = this.questions.map(q =>
+      q.Id === qid ? { ...q, selected: selectedValue } : q
+    );
   }
 
+  /* ────────────────────────────────────── */
+  /* wysyłanie odpowiedzi */
   async submitResponses() {
     if (this.isSurveyExpired) {
       this.toast('Error', 'Survey has expired. You cannot submit answers.', 'error');
@@ -128,13 +164,13 @@ export default class SurveyFiller extends LightningElement {
 
       if (Array.isArray(q.selected)) {
         return q.selected.map(val => ({
-          Question_PROJ__c: q.Id,
+          Question_PROJ__c  : q.Id,
           Selected_Choice__c: val
         }));
       }
 
       return [{
-        Question_PROJ__c: q.Id,
+        Question_PROJ__c  : q.Id,
         Selected_Choice__c: q.selected
       }];
     });
@@ -147,40 +183,43 @@ export default class SurveyFiller extends LightningElement {
     try {
       await submitResponsesApex({ responses: payload, userLoginId: this.userLoginId });
 
-      this.toast('Dziękujemy!', 'Twoje odpowiedzi zostały zapisane.', 'success');
+      this.toast('Thanks!', 'Your answers are saved.', 'success');
 
-      this.selectedSurveyId = '';
-      this.questions = null;
+      /* reset stanu & odśwież listę */
+      this.selectedSurveyId      = '';
+      this.questions             = null;
       this.selectedSurveyEndDate = null;
-      this.showModal = false;
+      this.showModal             = false;
 
-      window.location.reload();
+      await this.loadSurveys();
     } catch (err) {
       this.toast('Error', err.body?.message || 'Submission failed', 'error');
     }
   }
 
-  handleStatusChange(e) {
-    this.selectedStatus = e.detail.value;
-  }
-
-  get statusOptions() {
+  /* ────────────────────────────────────── */
+  /* GETTERS */
+  /* opcje do comboboxa kategorii */
+  get categoryOptions() {
     return [
       { label: 'Wszystkie', value: 'all' },
-      { label: 'Aktywne', value: 'active' },
-      { label: 'Zakończone', value: 'expired' }
+      ...this.categories.map(name => ({ label: name, value: name }))
     ];
   }
 
+  /* przefiltrowana i posortowana lista ankiet */
   get filteredSurveys() {
     let filtered = this.surveys;
 
-    if (this.selectedStatus === 'active') {
-      filtered = filtered.filter(s => !s.isExpired);
-    } else if (this.selectedStatus === 'expired') {
-      filtered = filtered.filter(s => s.isExpired);
+    /* ▼ NOWE: filtr po kategorii ▼ */
+    if (this.selectedCategory !== 'all') {
+      filtered = filtered.filter(
+        s => s.Category_PROJ__r?.Name === this.selectedCategory
+      );
     }
+    /* ▲ NOWE ▲ */
 
+    /* sortowanie wg daty zakończenia */
     return [...filtered].sort((a, b) => {
       const aDate = a.End_Date__c ? new Date(a.End_Date__c) : new Date(8640000000000000);
       const bDate = b.End_Date__c ? new Date(b.End_Date__c) : new Date(8640000000000000);
@@ -188,10 +227,13 @@ export default class SurveyFiller extends LightningElement {
     });
   }
 
+  /* ikonka strzałki */
   get sortIcon() {
     return this.isAscending ? 'utility:arrowup' : 'utility:arrowdown';
   }
 
+  /* ────────────────────────────────────── */
+  /* helper */
   toast(title, message, variant) {
     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
   }

@@ -22,6 +22,7 @@ export default class CategoryCreator extends LightningElement {
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.Role__c !== 'Admin') {
+      alert('Unauthorized role. Sending to loading page...');
       window.location.href = '/lightning/n/Login';
       return;
     }

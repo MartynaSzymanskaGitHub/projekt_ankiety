@@ -28,6 +28,7 @@ export default class SurveyCreator extends LightningElement {
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.Role__c !== 'Admin') {
+        alert('Unauthorized role. Sending to loading page...');
       window.location.href = '/lightning/n/Login';
       return;
     }
@@ -38,7 +39,7 @@ export default class SurveyCreator extends LightningElement {
         this.categories = data.map(c => ({ label: c.Name, value: c.Id }));
       })
       .catch(err => {
-        this.toast('Error', 'Nie udało się pobrać kategorii: ' +
+        this.toast('Error', 'Error loading categories: ' +
                   (err.body?.message || err.message), 'error');
       });
   }
@@ -126,7 +127,7 @@ export default class SurveyCreator extends LightningElement {
       return;
     }
     if (this.isDateInPast(this.endDate)) {
-      this.toast('Error', 'Data zakończenia jest w przeszłości', 'error');
+      this.toast('Error', 'Ending date cannot be earlier than now.', 'error');
       return;
     }
 
