@@ -27,38 +27,42 @@ public with sharing class SurveyController {
     }
 
 
-    @AuraEnabled(cacheable=true)
+@AuraEnabled(cacheable=true)
 public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
-    User_Login__c user = [
-        SELECT Role__c, Preferred_Category__c
-        FROM User_Login__c
-        WHERE Id = :userLoginId
-        LIMIT 1
+
+    /* 1. rola użytkownika */
+    User_Login__c u = [
+        SELECT Role__c
+        FROM   User_Login__c
+        WHERE  Id = :userLoginId
+        LIMIT  1
     ];
 
-    if (user.Preferred_Category__c == null) {
-        throw new AuraHandledException('Brak przypisanej kategorii.');
-    }
-
-    Category_PROJ__c category = [
-        SELECT Allowed_For__c
-        FROM Category_PROJ__c
-        WHERE Id = :user.Preferred_Category__c
-        LIMIT 1
+    /* 2. kategorie przypisane przez łącznik */
+    List<User_Category_PROJ__c> links = [
+        SELECT Category_PROJ__c
+        FROM   User_Category_PROJ__c
+        WHERE  User__c = :userLoginId
     ];
-
-    if (!category.Allowed_For__c.contains(user.Role__c)) {
-        throw new AuraHandledException('Brak dostępu do tej kategorii dla roli: ' + user.Role__c);
+    if (links.isEmpty()) {
+        throw new AuraHandledException('Brak przypisanych kategorii.');
     }
 
+    Set<Id> catIds = new Set<Id>();
+    for (User_Category_PROJ__c l : links) catIds.add(l.Category_PROJ__c);
+
+    /* 3. ankiety w tych kategoriach, które zezwalają na rolę */
     return [
-        SELECT Id, Title_c__c, End_Date__c, Category_PROJ__c, Category_PROJ__r.Name
-        FROM Survey_PROJ__c
-        WHERE Category_PROJ__c = :user.Preferred_Category__c
-        AND End_Date__c >= TODAY
-        ORDER BY End_Date__c ASC
+        SELECT Id, Title_c__c, End_Date__c,
+               Category_PROJ__c, Category_PROJ__r.Name
+        FROM   Survey_PROJ__c
+        WHERE  Category_PROJ__c IN :catIds
+          AND  End_Date__c      >= TODAY
+          AND  Category_PROJ__r.Allowed_For__c LIKE :('%' + u.Role__c + '%')
+        ORDER  BY End_Date__c ASC
     ];
 }
+
 
 
 
