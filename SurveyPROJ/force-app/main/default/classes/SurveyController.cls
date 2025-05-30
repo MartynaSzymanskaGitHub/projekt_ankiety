@@ -97,13 +97,16 @@ public with sharing class SurveyController {
     public static List<Question_PROJ__c> getQuestions(Id surveyId) {
         return [
             SELECT Id,
-                   Question_Text__c,
-                   Choices__c,
-                   Survey__r.End_Date__c
+                Question_Text__c,
+                Choices__c,
+                Is_MultiSelect__c,
+                Survey__r.End_Date__c
             FROM Question_PROJ__c
             WHERE Survey__c = :surveyId
         ];
     }
+
+
 
     @AuraEnabled
     public static void submitResponses(List<Response_PROJ__c> responses, Id userLoginId) {

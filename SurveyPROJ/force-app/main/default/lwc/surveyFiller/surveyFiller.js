@@ -80,19 +80,31 @@ export default class SurveyFiller extends LightningElement {
           options: q.Choices__c
             ? q.Choices__c.split(';').map(c => ({ label: c, value: c }))
             : [],
-          selected: ''
+          selected: q.Is_MultiSelect__c ? [] : ''
         }));
+
       })
       .catch(err => this.toast('Error', err.body?.message || err, 'error'));
   }
 
+
   handleResponse(e) {
     const qid = e.target.dataset.qid;
     const selectedValue = e.detail.value;
-    this.questions = this.questions.map(q =>
-      q.Id === qid ? { ...q, selected: selectedValue } : q
-    );
+
+    this.questions = this.questions.map(q => {
+      if (q.Id !== qid) return q;
+
+      // jeśli checkbox-group
+      if (q.Is_MultiSelect__c) {
+        return { ...q, selected: selectedValue }; // to będzie tablica []
+      }
+
+      // jeśli radio-group
+      return { ...q, selected: selectedValue }; // string
+    });
   }
+
 
   async submitResponses() {
     if (this.isSurveyExpired) {
@@ -100,12 +112,21 @@ export default class SurveyFiller extends LightningElement {
       return;
     }
 
-    const payload = this.questions
-      .filter(q => q.selected)
-      .map(q => ({
+    const payload = this.questions.flatMap(q => {
+      if (!q.selected || q.selected.length === 0) return [];
+
+      if (Array.isArray(q.selected)) {
+        return q.selected.map(val => ({
+          Question_PROJ__c: q.Id,
+          Selected_Choice__c: val
+        }));
+      }
+
+      return [{
         Question_PROJ__c: q.Id,
         Selected_Choice__c: q.selected
-      }));
+      }];
+    });
 
     if (!payload.length) {
       this.toast('Error', 'No answers selected.', 'error');
@@ -121,13 +142,12 @@ export default class SurveyFiller extends LightningElement {
       this.questions = null;
       this.selectedSurveyEndDate = null;
 
-
       window.location.reload();
-
     } catch (err) {
       this.toast('Error', err.body?.message || 'Submission failed', 'error');
     }
   }
+
 
   handleStatusChange(e) {
     this.selectedStatus = e.detail.value;

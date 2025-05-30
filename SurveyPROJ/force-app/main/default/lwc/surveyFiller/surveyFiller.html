@@ -75,15 +75,29 @@
             <template for:each={questions} for:item="q">
               <div key={q.Id} class="slds-box slds-m-top_medium">
                 <p class="slds-text-heading_small">{q.Question_Text__c}</p>
-                <lightning-radio-group
-                  name={q.Id}
-                  options={q.options}
-                  value={q.selected}
-                  data-qid={q.Id}
-                  onchange={handleResponse}>
-                </lightning-radio-group>
+
+                <template if:true={q.Is_MultiSelect__c}>
+                  <lightning-checkbox-group
+                    name={q.Id}
+                    options={q.options}
+                    value={q.selected}
+                    data-qid={q.Id}
+                    onchange={handleResponse}>
+                  </lightning-checkbox-group>
+                </template>
+
+                <template if:false={q.Is_MultiSelect__c}>
+                  <lightning-radio-group
+                    name={q.Id}
+                    options={q.options}
+                    value={q.selected}
+                    data-qid={q.Id}
+                    onchange={handleResponse}>
+                  </lightning-radio-group>
+                </template>
               </div>
             </template>
+
 
             <lightning-button
               variant="brand"

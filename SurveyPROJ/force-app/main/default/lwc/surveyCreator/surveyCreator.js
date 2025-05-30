@@ -11,22 +11,16 @@ export default class SurveyCreator extends LightningElement {
   @track description = '';
   @track endDate = '';
   @track questions = [
-    { id: 1, text: '', choices: [{ id: uid(), value: '' }] }
+    { id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
   ];
   isSaving = false;
   isAuthorized = false;
 
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
-
-    if (!user) {
+    if (!user || user.Role__c !== 'Admin') {
       window.location.href = '/lightning/n/Login';
       return;
-    }
-
-    if (user.Role__c !== 'Admin') {
-      alert('Brak dostępu. Tylko administrator może tworzyć ankiety.');
-      window.location.href = '/lightning/n/Login'; 
     }
     this.isAuthorized = true;
   }
@@ -47,7 +41,7 @@ export default class SurveyCreator extends LightningElement {
     const nextId = this.questions.length + 1;
     this.questions = [
       ...this.questions,
-      { id: nextId, text: '', choices: [{ id: uid(), value: '' }] }
+      { id: nextId, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
     ];
   }
 
@@ -60,6 +54,14 @@ export default class SurveyCreator extends LightningElement {
     const id = Number(e.target.dataset.id);
     this.questions = this.questions.map(q =>
       q.id === id ? { ...q, text: e.target.value } : q
+    );
+  }
+
+  toggleMultiSelect(e) {
+    const id = Number(e.target.dataset.id);
+    const checked = e.target.checked;
+    this.questions = this.questions.map(q =>
+      q.id === id ? { ...q, multi: checked } : q
     );
   }
 
@@ -109,12 +111,10 @@ export default class SurveyCreator extends LightningElement {
       this.toast('Error', 'Survey title is required', 'error');
       return;
     }
-
     if (!this.endDate) {
       this.toast('Error', 'End date is required', 'error');
       return;
     }
-
     if (this.isDateInPast(this.endDate)) {
       this.toast('Error', 'End date cannot be in the past', 'error');
       return;
@@ -133,7 +133,8 @@ export default class SurveyCreator extends LightningElement {
       Choices__c: q.choices
         .map(c => c.value.trim())
         .filter(v => v)
-        .join(';')
+        .join(';'),
+      Is_MultiSelect__c: q.multi
     }));
 
     saveSurvey({ survey, questions })
@@ -143,7 +144,7 @@ export default class SurveyCreator extends LightningElement {
         this.description = '';
         this.endDate = '';
         this.questions = [
-          { id: 1, text: '', choices: [{ id: uid(), value: '' }] }
+          { id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
         ];
         window.location.reload();
       })
@@ -152,7 +153,6 @@ export default class SurveyCreator extends LightningElement {
       })
       .finally(() => (this.isSaving = false));
   }
-
 
   toast(title, message, variant) {
     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
