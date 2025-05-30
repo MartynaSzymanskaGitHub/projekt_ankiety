@@ -1,24 +1,34 @@
 <template>
   <template if:true={isAuthorized}>
     <c-logout-button></c-logout-button>
+
     <lightning-card title="Create Survey">
       <div class="slds-p-around_medium">
 
-        <lightning-input
-          label="Survey Title"
-          onchange={handleTitleChange}>
+        <lightning-input label="Survey Title"
+                         value={title}
+                         onchange={handleTitleChange}>
         </lightning-input>
 
-        <lightning-textarea
-          label="Description"
-          onchange={handleDescriptionChange}>
+        <lightning-textarea label="Description"
+                            value={description}
+                            onchange={handleDescriptionChange}>
         </lightning-textarea>
 
-        <lightning-input
-          type="datetime"
-          label="End Date"
-          onchange={handleEndDateChange}>
+        <lightning-input type="datetime"
+                         label="End Date"
+                         value={endDate}
+                         onchange={handleEndDateChange}>
         </lightning-input>
+
+        <!-- ▼ LISTA ROZWIJANA KATEGORII ▼ -->
+        <lightning-combobox label="Kategoria"
+                            value={selectedCategoryId}
+                            options={categories}
+                            placeholder="Wybierz kategorię"
+                            onchange={handleCategoryChange}
+                            class="slds-m-bottom_medium">
+        </lightning-combobox>
 
         <!-- pytania -->
         <template for:each={questions} for:item="q">
@@ -26,71 +36,61 @@
 
             <div class="slds-grid slds-align-spread slds-m-bottom_small">
               <h3>Pytanie {q.id}</h3>
-              <lightning-button-icon
-                icon-name="utility:close"
-                alternative-text="Usuń pytanie"
-                data-id={q.id}
-                onclick={removeQuestion}>
+              <lightning-button-icon icon-name="utility:close"
+                                     alternative-text="Usuń pytanie"
+                                     data-id={q.id}
+                                     onclick={removeQuestion}>
               </lightning-button-icon>
             </div>
 
-            <lightning-textarea
-              label="Question Text"
-              data-id={q.id}
-              value={q.text}
-              onchange={handleQuestionTextChange}>
+            <lightning-textarea label="Question Text"
+                                value={q.text}
+                                data-id={q.id}
+                                onchange={handleQuestionTextChange}>
             </lightning-textarea>
 
-            <lightning-input
-              type="checkbox"
-              label="Allow Multiple Answers"
-              data-id={q.id}
-              checked={q.multi}
-              onchange={toggleMultiSelect}>
+            <lightning-input type="checkbox"
+                             label="Allow Multiple Answers"
+                             data-id={q.id}
+                             checked={q.multi}
+                             onchange={toggleMultiSelect}>
             </lightning-input>
 
             <!-- opcje -->
             <template for:each={q.choices} for:item="choice">
               <div key={choice.id} class="slds-grid slds-align-bottom slds-m-top_small">
-
-                <lightning-input
-                  label="Option"
-                  data-qid={q.id}
-                  data-cid={choice.id}
-                  value={choice.value}
-                  onchange={handleChoiceChange}>
+                <lightning-input label="Option"
+                                 value={choice.value}
+                                 data-qid={q.id}
+                                 data-cid={choice.id}
+                                 onchange={handleChoiceChange}>
                 </lightning-input>
 
-                <lightning-button-icon
-                  icon-name="utility:close"
-                  alternative-text="Usuń opcję"
-                  data-qid={q.id}
-                  data-cid={choice.id}
-                  onclick={removeChoice}>
+                <lightning-button-icon icon-name="utility:close"
+                                       alternative-text="Usuń opcję"
+                                       data-qid={q.id}
+                                       data-cid={choice.id}
+                                       onclick={removeChoice}>
                 </lightning-button-icon>
-
               </div>
             </template>
 
-            <lightning-button
-              label="Add Option"
-              class="slds-m-top_small"
-              variant="neutral"
-              data-id={q.id}
-              onclick={addChoice}>
+            <lightning-button label="Add Option"
+                              variant="neutral"
+                              data-id={q.id}
+                              class="slds-m-top_small"
+                              onclick={addChoice}>
             </lightning-button>
-
           </div>
         </template>
 
         <div class="slds-m-top_medium">
           <lightning-button label="Add Question" onclick={addQuestion}></lightning-button>
-          <lightning-button
-            variant="brand"
-            class="slds-m-left_small"
-            label="Save"
-            onclick={saveSurvey}
-            disabled={isSaving}>
+          <lightning-button label="Save"
+                            variant="brand"
+                            class="slds-m-left_small"
+                            onclick={saveSurvey}
+                            disabled={isSaving}>
           </lightning-button>
         </div>
 

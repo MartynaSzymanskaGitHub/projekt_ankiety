@@ -1,9 +1,11 @@
 import { LightningElement, track } from 'lwc';
-import getAllSurveysWithSorting from '@salesforce/apex/SurveyController.getAllSurveysWithSorting';
+import getSurveysForUser from '@salesforce/apex/SurveyController.getSurveysForUser';
 import getQuestions from '@salesforce/apex/SurveyController.getQuestions';
 import submitResponsesApex from '@salesforce/apex/SurveyController.submitResponses';
 import checkUserSubmitted from '@salesforce/apex/SurveyController.hasUserSubmitted';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+
+const ALLOWED_ROLES = ['User', 'Worker'];
 
 export default class SurveyFiller extends LightningElement {
   @track surveys = [];
@@ -18,34 +20,47 @@ export default class SurveyFiller extends LightningElement {
   isAuthorized = false;
 
   userLoginId;
+  userRole;
 
-  connectedCallback() {
+    connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
+
+    /* brak danych logowania → przenosimy do /Login */
     if (!user) {
       window.location.href = '/lightning/n/Login';
       return;
     }
+
     this.userLoginId = user.Id;
+    this.userRole    = user.Role__c;
+
+    /* ─── autoryzacja roli ─── */
+    if (!ALLOWED_ROLES.includes(this.userRole)) {
+      alert('Tylko role „User” i „Worker” mogą wypełniać ankiety.');
+      window.location.href = '/lightning/n/Login';
+      return;
+    }
+
     this.isAuthorized = true;
     this.loadSurveys();
   }
 
   async loadSurveys() {
     try {
-      const data = await getAllSurveysWithSorting({ ascending: this.isAscending });
-      const now = new Date();
+      const data = await getSurveysForUser({ userLoginId: this.userLoginId });
+      const now  = new Date();
 
-      const results = await Promise.all(
+      const submitted = await Promise.all(
         data.map(s => checkUserSubmitted({ surveyId: s.Id, userLoginId: this.userLoginId }))
       );
 
-      this.surveys = data.map((s, index) => ({
+      this.surveys = data.map((s, i) => ({
         ...s,
-        isExpired: s.End_Date__c ? new Date(s.End_Date__c) < now : false,
-        alreadySubmitted: results[index]
+        isExpired      : s.End_Date__c ? new Date(s.End_Date__c) < now : false,
+        alreadySubmitted : submitted[i]
       }));
     } catch (err) {
-      this.toast('Error', err.body?.message || err.message || err, 'error');
+      this.toast('Error', err.body?.message || err.message, 'error');
     }
   }
 

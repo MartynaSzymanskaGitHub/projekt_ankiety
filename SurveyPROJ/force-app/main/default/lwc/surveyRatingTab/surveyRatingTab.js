@@ -3,42 +3,49 @@ import getFilledSurveys from '@salesforce/apex/SurveyController.getFilledSurveys
 import submitSurveyRating from '@salesforce/apex/SurveyController.submitSurveyRating';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+const ALLOWED_ROLES = ['User', 'Worker'];
+
 export default class SurveyRatingTab extends LightningElement {
   @track surveyOptions = [];
   @track selectedSurveyId = '';
   @track rating = '';
   @track isEmpty = false;
+  isAuthorized = false;
   userLoginId;
+  userRole;
 
   connectedCallback() {
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!user) {
+      window.location.href = '/lightning/n/Login';
+      return;
+    }
+    this.userLoginId = user.Id;
+    this.userRole    = user.Role__c;
+
+    if (!ALLOWED_ROLES.includes(this.userRole)) {
+      alert('Tylko role „User” i „Worker” mogą oceniać ankiety.');
+      window.location.href = '/lightning/n/Login';
+      return;
+    }
+
+    this.isAuthorized = true;
     this.loadSurveys();
   }
 
   loadSurveys() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-      this.isEmpty = true;
-      this.showToast('Błąd', 'Nie znaleziono danych użytkownika. Zaloguj się ponownie.', 'error');
-      return;
-    }
-
-    this.userLoginId = user.Id;
-
     getFilledSurveys({ userLoginId: this.userLoginId })
       .then(data => {
         if (!data || data.length === 0) {
           this.isEmpty = true;
-          this.surveyOptions = [];
-        } else {
-          this.isEmpty = false;
-          this.surveyOptions = data.map(s => ({
-            label: s.Title_c__c,
-            value: s.Id
-          }));
+          return;
         }
+        this.isEmpty = false;
+        this.surveyOptions = data.map(s => ({ label: s.Title_c__c, value: s.Id }));
       })
-      .catch(error => {
-        this.showToast('Błąd', error.body?.message || error.message, 'error');
+      .catch(err => {
+        this.showToast('Błąd', err.body?.message || err.message, 'error');
       });
   }
 

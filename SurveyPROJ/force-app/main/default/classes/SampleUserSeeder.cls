@@ -16,6 +16,11 @@ public with sharing class SampleUserSeeder {
                 Name = 'user2',
                 Password__c = 'user456',
                 Role__c = 'User'
+            ),
+            new User_Login__c(
+                Name = 'worker1',
+                Password__c = 'worker123',
+                Role__c = 'Worker'
             )
         };
         insert users;

@@ -1,5 +1,6 @@
 import { LightningElement, track } from 'lwc';
-import saveSurvey from '@salesforce/apex/SurveyController.saveSurvey';
+import saveSurvey       from '@salesforce/apex/SurveyController.saveSurvey';
+import getAllCategories from '@salesforce/apex/CategoryController.getAllCategories';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 function uid() {
@@ -7,15 +8,23 @@ function uid() {
 }
 
 export default class SurveyCreator extends LightningElement {
-  @track title = '';
-  @track description = '';
-  @track endDate = '';
+  /* ------- pola formularza ------- */
+  @track title              = '';
+  @track description        = '';
+  @track endDate            = '';
+  @track selectedCategoryId = '';
+  @track categories         = [];
+
+  /* ------- pytania ------- */
   @track questions = [
     { id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
   ];
-  isSaving = false;
+
+  /* ------- stan UI ------- */
+  isSaving     = false;
   isAuthorized = false;
 
+  /* ============================================================= */
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.Role__c !== 'Admin') {
@@ -23,19 +32,26 @@ export default class SurveyCreator extends LightningElement {
       return;
     }
     this.isAuthorized = true;
+
+    getAllCategories()
+      .then(data => {
+        this.categories = data.map(c => ({ label: c.Name, value: c.Id }));
+      })
+      .catch(err => {
+        this.toast('Error', 'Nie udało się pobrać kategorii: ' +
+                  (err.body?.message || err.message), 'error');
+      });
   }
 
-  handleTitleChange(e) {
-    this.title = e.target.value;
-  }
+  /* ------- handlery formularza ------- */
+  handleTitleChange(e)       { this.title       = e.target.value; }
+  handleDescriptionChange(e) { this.description = e.target.value; }
+  handleEndDateChange(e)     { this.endDate     = e.target.value; }
+  handleCategoryChange(e)    { this.selectedCategoryId = e.detail.value; }
 
-  handleDescriptionChange(e) {
-    this.description = e.target.value;
-  }
-
-  handleEndDateChange(e) {
-    this.endDate = e.target.value;
-  }
+  /* =============================================================
+     ========== P Y T A N I A  I  O D P O W I E D Z I =============
+     ============================================================= */
 
   addQuestion() {
     const nextId = this.questions.length + 1;
@@ -100,60 +116,48 @@ export default class SurveyCreator extends LightningElement {
     );
   }
 
-  isDateInPast(datetimeStr) {
-    const now = new Date();
-    const selected = new Date(datetimeStr);
-    return selected < now;
-  }
+  /* ------- walidacja daty ------- */
+  isDateInPast(str) { return new Date(str) < new Date(); }
 
+  /* ------- ZAPIS ------- */
   saveSurvey() {
-    if (!this.title) {
-      this.toast('Error', 'Survey title is required', 'error');
-      return;
-    }
-    if (!this.endDate) {
-      this.toast('Error', 'End date is required', 'error');
+    if (!this.title || !this.endDate || !this.selectedCategoryId) {
+      this.toast('Error', 'Uzupełnij tytuł, datę i kategorię', 'error');
       return;
     }
     if (this.isDateInPast(this.endDate)) {
-      this.toast('Error', 'End date cannot be in the past', 'error');
+      this.toast('Error', 'Data zakończenia jest w przeszłości', 'error');
       return;
     }
 
     this.isSaving = true;
 
     const survey = {
-      Title_c__c: this.title,
-      Description__c: this.description,
-      End_Date__c: this.endDate
+      Title_c__c       : this.title,
+      Description__c   : this.description,
+      End_Date__c      : this.endDate,
+      Category_PROJ__c : this.selectedCategoryId
     };
 
     const questions = this.questions.map(q => ({
-      Question_Text__c: q.text,
-      Choices__c: q.choices
-        .map(c => c.value.trim())
-        .filter(v => v)
-        .join(';'),
-      Is_MultiSelect__c: q.multi
+      Question_Text__c  : q.text,
+      Choices__c        : q.choices.map(c => c.value.trim()).filter(v=>v).join(';'),
+      Is_MultiSelect__c : q.multi
     }));
 
     saveSurvey({ survey, questions })
       .then(() => {
         this.toast('Success', 'Survey saved', 'success');
-        this.title = '';
-        this.description = '';
-        this.endDate = '';
-        this.questions = [
-          { id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
-        ];
-        window.location.reload();
+        this.title = this.description = this.endDate = this.selectedCategoryId = '';
+        this.questions = [{ id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }];
       })
       .catch(err => {
         this.toast('Error', err.body?.message || err, 'error');
       })
-      .finally(() => (this.isSaving = false));
+      .finally(() => { this.isSaving = false; });
   }
 
+  /* ------- toast util ------- */
   toast(title, message, variant) {
     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
   }

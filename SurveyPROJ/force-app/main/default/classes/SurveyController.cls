@@ -26,6 +26,42 @@ public with sharing class SurveyController {
         ];
     }
 
+
+    @AuraEnabled(cacheable=true)
+public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
+    User_Login__c user = [
+        SELECT Role__c, Preferred_Category__c
+        FROM User_Login__c
+        WHERE Id = :userLoginId
+        LIMIT 1
+    ];
+
+    if (user.Preferred_Category__c == null) {
+        throw new AuraHandledException('Brak przypisanej kategorii.');
+    }
+
+    Category_PROJ__c category = [
+        SELECT Allowed_For__c
+        FROM Category_PROJ__c
+        WHERE Id = :user.Preferred_Category__c
+        LIMIT 1
+    ];
+
+    if (!category.Allowed_For__c.contains(user.Role__c)) {
+        throw new AuraHandledException('Brak dostępu do tej kategorii dla roli: ' + user.Role__c);
+    }
+
+    return [
+        SELECT Id, Title_c__c, End_Date__c, Category_PROJ__c, Category_PROJ__r.Name
+        FROM Survey_PROJ__c
+        WHERE Category_PROJ__c = :user.Preferred_Category__c
+        AND End_Date__c >= TODAY
+        ORDER BY End_Date__c ASC
+    ];
+}
+
+
+
     @AuraEnabled(cacheable=true)
     public static Boolean hasUserSubmitted(Id surveyId, Id userLoginId) {
         List<Response_PROJ__c> existingResponses = [

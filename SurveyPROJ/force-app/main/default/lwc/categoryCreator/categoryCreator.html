@@ -1,0 +1,68 @@
+<template>
+  <template if:true={isAuthorized}>
+    <c-logout-button></c-logout-button>
+
+    <lightning-card title="Dodaj kategorię" icon-name="utility:add">
+      <div class="slds-p-around_medium">
+
+        <lightning-input label="Nazwa kategorii"
+                         value={categoryName}
+                         onchange={handleNameChange}>
+        </lightning-input>
+
+        <lightning-dual-listbox
+          name="allowedRoles"
+          label="Role, które mogą używać tej kategorii"
+          source-label="Dostępne role"
+          selected-label="Wybrane role"
+          options={roleOptions}
+          value={selectedRoles}
+          onchange={handleRoleChange}
+          class="slds-m-top_medium">
+        </lightning-dual-listbox>
+
+        <lightning-button variant="brand"
+                          label="Zapisz kategorię"
+                          class="slds-m-top_medium"
+                          onclick={handleSave}
+                          disabled={disableSave}>
+        </lightning-button>
+
+        <!-- lista kategorii -->
+        <template if:true={categories.length}>
+          <h3 class="slds-text-heading_small slds-m-top_large">Istniejące kategorie</h3>
+
+          <div class="slds-scrollable_y" style="max-height:220px;">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+              <thead>
+                <tr>
+                  <th style="width:40%">Nazwa</th>
+                  <th style="width:45%">Dozwolone role</th>
+                  <th style="width:15%"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <template for:each={categories} for:item="c">
+                  <tr key={c.Id}>
+                    <td>{c.Name}</td>
+                    <td>{c.Allowed_For__c}</td>
+                    <td class="slds-text-align_right">
+                      <lightning-button-icon
+                          icon-name="utility:delete"
+                          variant="border-filled"
+                          alternative-text="Usuń"
+                          data-id={c.Id}
+                          onclick={handleDelete}>
+                      </lightning-button-icon>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </template>
+
+      </div>
+    </lightning-card>
+  </template>
+</template>
