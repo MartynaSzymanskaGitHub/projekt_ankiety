@@ -8,27 +8,30 @@ function uid() {
 }
 
 export default class SurveyCreator extends LightningElement {
-  /* ------- pola formularza ------- */
   @track title              = '';
   @track description        = '';
   @track endDate            = '';
   @track selectedCategoryId = '';
   @track categories         = [];
 
-  /* ------- pytania ------- */
   @track questions = [
-    { id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
+    {
+      id: 1,
+      text: '',
+      multi: false,
+      isControl: false,
+      radioGroupName: 'correct-1',
+      choices: [{ id: uid(), value: '', isCorrect: false }]
+    }
   ];
 
-  /* ------- stan UI ------- */
   isSaving     = false;
   isAuthorized = false;
 
-  /* ============================================================= */
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.Role__c !== 'Admin') {
-        alert('Unauthorized role. Sending to loading page...');
+      alert('Unauthorized role. Sending to loading page...');
       window.location.href = '/lightning/n/Login';
       return;
     }
@@ -44,21 +47,23 @@ export default class SurveyCreator extends LightningElement {
       });
   }
 
-  /* ------- handlery formularza ------- */
   handleTitleChange(e)       { this.title       = e.target.value; }
   handleDescriptionChange(e) { this.description = e.target.value; }
   handleEndDateChange(e)     { this.endDate     = e.target.value; }
   handleCategoryChange(e)    { this.selectedCategoryId = e.detail.value; }
 
-  /* =============================================================
-     ========== P Y T A N I A  I  O D P O W I E D Z I =============
-     ============================================================= */
-
   addQuestion() {
     const nextId = this.questions.length + 1;
     this.questions = [
       ...this.questions,
-      { id: nextId, text: '', multi: false, choices: [{ id: uid(), value: '' }] }
+      {
+        id: nextId,
+        text: '',
+        multi: false,
+        isControl: false,
+        radioGroupName: `correct-${nextId}`,
+        choices: [{ id: uid(), value: '', isCorrect: false }]
+      }
     ];
   }
 
@@ -82,11 +87,32 @@ export default class SurveyCreator extends LightningElement {
     );
   }
 
+  toggleIsControl(e) {
+    const id = Number(e.target.dataset.id);
+    const checked = e.target.checked;
+    this.questions = this.questions.map(q =>
+      q.id === id ? { ...q, isControl: checked } : q
+    );
+  }
+
+  markCorrectAnswer(e) {
+    const qid = Number(e.target.dataset.qid);
+    const cid = e.target.dataset.cid;
+
+    this.questions = this.questions.map(q => {
+      if (q.id !== qid) return q;
+      return {
+        ...q,
+        choices: q.choices.map(c => ({ ...c, isCorrect: c.id === cid }))
+      };
+    });
+  }
+
   addChoice(e) {
     const qid = Number(e.target.dataset.id);
     this.questions = this.questions.map(q =>
       q.id === qid
-        ? { ...q, choices: [...q.choices, { id: uid(), value: '' }] }
+        ? { ...q, choices: [...q.choices, { id: uid(), value: '', isCorrect: false }] }
         : q
     );
   }
@@ -117,10 +143,8 @@ export default class SurveyCreator extends LightningElement {
     );
   }
 
-  /* ------- walidacja daty ------- */
   isDateInPast(str) { return new Date(str) < new Date(); }
 
-  /* ------- ZAPIS ------- */
   saveSurvey() {
     if (!this.title || !this.endDate || !this.selectedCategoryId) {
       this.toast('Error', 'Uzupełnij tytuł, datę i kategorię', 'error');
@@ -141,16 +165,29 @@ export default class SurveyCreator extends LightningElement {
     };
 
     const questions = this.questions.map(q => ({
-      Question_Text__c  : q.text,
-      Choices__c        : q.choices.map(c => c.value.trim()).filter(v=>v).join(';'),
-      Is_MultiSelect__c : q.multi
+      Question_Text__c   : q.text,
+      Is_Control_c__c    : q.isControl,
+      Is_MultiSelect__c  : q.multi,
+      Choices__c         : q.choices.map(c => c.value.trim()).filter(v => v).join(';'),
+      Correct_Choice__c  : q.isControl
+                           ? q.choices.find(c => c.isCorrect)?.value?.trim() || ''
+                           : ''
     }));
 
     saveSurvey({ survey, questions })
       .then(() => {
         this.toast('Success', 'Survey saved', 'success');
         this.title = this.description = this.endDate = this.selectedCategoryId = '';
-        this.questions = [{ id: 1, text: '', multi: false, choices: [{ id: uid(), value: '' }] }];
+        this.questions = [
+          {
+            id: 1,
+            text: '',
+            multi: false,
+            isControl: false,
+            radioGroupName: 'correct-1',
+            choices: [{ id: uid(), value: '', isCorrect: false }]
+          }
+        ];
       })
       .catch(err => {
         this.toast('Error', err.body?.message || err, 'error');
@@ -158,7 +195,6 @@ export default class SurveyCreator extends LightningElement {
       .finally(() => { this.isSaving = false; });
   }
 
-  /* ------- toast util ------- */
   toast(title, message, variant) {
     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
   }

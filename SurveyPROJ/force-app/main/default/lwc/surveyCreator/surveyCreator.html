@@ -21,7 +21,6 @@
                          onchange={handleEndDateChange}>
         </lightning-input>
 
-        <!-- ▼ LISTA ROZWIJANA KATEGORII ▼ -->
         <lightning-combobox label="Kategoria"
                             value={selectedCategoryId}
                             options={categories}
@@ -30,7 +29,6 @@
                             class="slds-m-bottom_medium">
         </lightning-combobox>
 
-        <!-- pytania -->
         <template for:each={questions} for:item="q">
           <div key={q.id} class="slds-box slds-m-top_medium">
 
@@ -56,15 +54,33 @@
                              onchange={toggleMultiSelect}>
             </lightning-input>
 
-            <!-- opcje -->
+            <lightning-input type="checkbox"
+                             label="Czy to pytanie kontrolne?"
+                             data-id={q.id}
+                             checked={q.isControl}
+                             onchange={toggleIsControl}>
+            </lightning-input>
+
             <template for:each={q.choices} for:item="choice">
-              <div key={choice.id} class="slds-grid slds-align-bottom slds-m-top_small">
+              <div key={choice.id} class="slds-grid slds-align-spread slds-m-top_small slds-p-bottom_xx-small">
+
                 <lightning-input label="Option"
                                  value={choice.value}
                                  data-qid={q.id}
                                  data-cid={choice.id}
                                  onchange={handleChoiceChange}>
                 </lightning-input>
+
+                <template if:true={q.isControl}>
+                  <lightning-input type="radio"
+                                   name={q.radioGroupName}
+                                   checked={choice.isCorrect}
+                                   data-qid={q.id}
+                                   data-cid={choice.id}
+                                   onchange={markCorrectAnswer}
+                                   label="Poprawna">
+                  </lightning-input>
+                </template>
 
                 <lightning-button-icon icon-name="utility:close"
                                        alternative-text="Usuń opcję"

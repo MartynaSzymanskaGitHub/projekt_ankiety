@@ -1,15 +1,15 @@
 public with sharing class SurveyController {
 
+    // ======== Klasy pomocnicze (DTO) ========
     public class OptionStat {
         @AuraEnabled public String  questionText;
         @AuraEnabled public String  choice;
         @AuraEnabled public Integer count;
     }
 
-
- public class SurveyAverageRating {
-        @AuraEnabled public String  title;      // będzie s.title
-        @AuraEnabled public Decimal avgRating;  // będzie s.avgRating
+    public class SurveyAverageRating {
+        @AuraEnabled public String  title;
+        @AuraEnabled public Decimal avgRating;
 
         public SurveyAverageRating(String title, Decimal avgRating) {
             this.title     = title;
@@ -17,15 +17,23 @@ public with sharing class SurveyController {
         }
     }
 
+    public class ControlAnswerStat {
+        @AuraEnabled public String questionText;
+        @AuraEnabled public Integer correctCount;
+        @AuraEnabled public Integer incorrectCount;
+    }
 
-@AuraEnabled(cacheable=true)
+
+    // ======== 1) Metoda getTop3RatedSurveysDynamic ========
+    @AuraEnabled(cacheable=true)
     public static List<SurveyAverageRating> getTop3RatedSurveysDynamic() {
         AggregateResult[] results = [
             SELECT Survey_PROJ__c,
                    Survey_PROJ__r.Title_c__c   title,
                    AVG(Rating__c)              avgRating
             FROM   SurveyRating_PROJ__c
-            WHERE  Rating__c != null AND Survey_PROJ__r.Title_c__c != null
+            WHERE  Rating__c != null 
+              AND Survey_PROJ__r.Title_c__c != null
             GROUP  BY Survey_PROJ__c, Survey_PROJ__r.Title_c__c
             ORDER  BY AVG(Rating__c) DESC
             LIMIT  3
@@ -33,17 +41,17 @@ public with sharing class SurveyController {
 
         List<SurveyAverageRating> outList = new List<SurveyAverageRating>();
         for (AggregateResult r : results) {
-            String  title = (String)  r.get('title');
+            String title = (String) r.get('title');
             Decimal rating = (Decimal) r.get('avgRating');
-
             if (title != null && rating != null) {
-                outList.add( new SurveyAverageRating(title, rating) );
+                outList.add(new SurveyAverageRating(title, rating));
             }
         }
-
         return outList;
     }
 
+
+    // ======== 2) Metoda getAllSurveysWithSorting ========
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveysWithSorting(Boolean ascending) {
         String direction = ascending ? 'ASC' : 'DESC';
@@ -55,6 +63,8 @@ public with sharing class SurveyController {
         );
     }
 
+
+    // ======== 3) Metoda getAllSurveys ========
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveys() {
         return [
@@ -65,58 +75,56 @@ public with sharing class SurveyController {
     }
 
 
-@AuraEnabled(cacheable=true)
-public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
+    // ======== 4) Metoda getSurveysForUser ========
+    @AuraEnabled(cacheable=true)
+    public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
+        User_Login__c u = [
+            SELECT Role__c
+            FROM   User_Login__c
+            WHERE  Id = :userLoginId
+            LIMIT  1
+        ];
 
-    /* 1. rola użytkownika */
-    User_Login__c u = [
-        SELECT Role__c
-        FROM   User_Login__c
-        WHERE  Id = :userLoginId
-        LIMIT  1
-    ];
+        List<User_Category_PROJ__c> links = [
+            SELECT Category_PROJ__c
+            FROM   User_Category_PROJ__c
+            WHERE  User__c = :userLoginId
+        ];
+        if (links.isEmpty()) {
+            throw new AuraHandledException('Brak przypisanych kategorii.');
+        }
+        Set<Id> catIds = new Set<Id>();
+        for (User_Category_PROJ__c l : links) {
+            catIds.add(l.Category_PROJ__c);
+        }
 
-    /* 2. kategorie przypisane przez łącznik */
-    List<User_Category_PROJ__c> links = [
-        SELECT Category_PROJ__c
-        FROM   User_Category_PROJ__c
-        WHERE  User__c = :userLoginId
-    ];
-    if (links.isEmpty()) {
-        throw new AuraHandledException('Brak przypisanych kategorii.');
+        return [
+            SELECT Id, Title_c__c, End_Date__c,
+                   Category_PROJ__c, Category_PROJ__r.Name
+            FROM   Survey_PROJ__c
+            WHERE  Category_PROJ__c IN :catIds
+              AND  End_Date__c      >= TODAY
+              AND  Category_PROJ__r.Allowed_For__c LIKE :('%' + u.Role__c + '%')
+            ORDER  BY End_Date__c ASC
+        ];
     }
 
-    Set<Id> catIds = new Set<Id>();
-    for (User_Category_PROJ__c l : links) catIds.add(l.Category_PROJ__c);
 
-    /* 3. ankiety w tych kategoriach, które zezwalają na rolę */
-    return [
-        SELECT Id, Title_c__c, End_Date__c,
-               Category_PROJ__c, Category_PROJ__r.Name
-        FROM   Survey_PROJ__c
-        WHERE  Category_PROJ__c IN :catIds
-          AND  End_Date__c      >= TODAY
-          AND  Category_PROJ__r.Allowed_For__c LIKE :('%' + u.Role__c + '%')
-        ORDER  BY End_Date__c ASC
-    ];
-}
-
-
-
-
+    // ======== 5) Metoda hasUserSubmitted ========
     @AuraEnabled(cacheable=true)
     public static Boolean hasUserSubmitted(Id surveyId, Id userLoginId) {
         List<Response_PROJ__c> existingResponses = [
             SELECT Id
             FROM Response_PROJ__c
             WHERE User_Login__c = :userLoginId
-            AND Question_PROJ__r.Survey__c = :surveyId
+              AND Question_PROJ__r.Survey__c = :surveyId
             LIMIT 1
         ];
         return !existingResponses.isEmpty();
     }
 
 
+    // ======== 6) Metoda getSurveyStats ========
     @AuraEnabled(cacheable=true)
     public static List<OptionStat> getSurveyStats(Id surveyId) {
         Map<Id, String> questionMap = new Map<Id, String>();
@@ -138,20 +146,77 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
         List<OptionStat> out = new List<OptionStat>();
         for (AggregateResult r : results) {
             OptionStat stat = new OptionStat();
-            Id qid = (Id) r.get('qId');
+            Id   qid   = (Id)   r.get('qId');
             stat.questionText = questionMap.get(qid);
-            stat.choice = (String) r.get('choice');
-            stat.count = (Integer) r.get('c');
+            stat.choice       = (String) r.get('choice');
+            stat.count        = (Integer)r.get('c');
             out.add(stat);
         }
         return out;
     }
 
+
+    // ======== 7) Metoda deleteSurvey ========
     @AuraEnabled 
     public static void deleteSurvey(Id surveyId) {
         delete new Survey_PROJ__c(Id = surveyId);
     }
 
+
+    // ======== 8) Metoda getControlQuestionStats (dodana) ========
+    @AuraEnabled(cacheable=true)
+    public static List<ControlAnswerStat> getControlQuestionStats(Id surveyId) {
+        Map<Id, String> correctAnswers = new Map<Id, String>();
+        Map<Id, String> questionTexts  = new Map<Id, String>();
+
+        // Poniżej upewnij się, że pole API Name to "Is_Control_c__c"
+        for (Question_PROJ__c q : [
+            SELECT Id, Question_Text__c, Correct_Choice__c, Is_Control_c__c
+            FROM Question_PROJ__c
+            WHERE Survey__c = :surveyId
+              AND Is_Control_c__c = true
+        ]) {
+            correctAnswers.put(q.Id, q.Correct_Choice__c);
+            questionTexts.put(q.Id, q.Question_Text__c);
+        }
+
+        if (correctAnswers.isEmpty()) {
+            return new List<ControlAnswerStat>();
+        }
+
+        List<AggregateResult> results = [
+            SELECT Question_PROJ__c qid, Selected_Choice__c selected, COUNT(Id) cnt
+            FROM Response_PROJ__c
+            WHERE Question_PROJ__c IN :correctAnswers.keySet()
+            GROUP BY Question_PROJ__c, Selected_Choice__c
+        ];
+
+        Map<Id, ControlAnswerStat> stats = new Map<Id, ControlAnswerStat>();
+        for (AggregateResult ar : results) {
+            Id    qid      = (Id)   ar.get('qid');
+            String selected = (String) ar.get('selected');
+            Integer cnt     = (Integer) ar.get('cnt');
+
+            if (!stats.containsKey(qid)) {
+                ControlAnswerStat stat = new ControlAnswerStat();
+                stat.questionText   = questionTexts.get(qid);
+                stat.correctCount   = 0;
+                stat.incorrectCount = 0;
+                stats.put(qid, stat);
+            }
+
+            String correct = correctAnswers.get(qid);
+            if (selected == correct) {
+                stats.get(qid).correctCount += cnt;
+            } else {
+                stats.get(qid).incorrectCount += cnt;
+            }
+        }
+        return stats.values();
+    }
+
+
+    // ======== 9) Metoda saveSurvey (zmodyfikowana o kontrolne pytania) ========
     @AuraEnabled
     public static Survey_PROJ__c saveSurvey(
         Survey_PROJ__c survey,
@@ -162,6 +227,9 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
 
         for (Question_PROJ__c q : questions) {
             q.Survey__c = survey.Id;
+            if (q.Is_Control_c__c && String.isBlank(q.Correct_Choice__c)) {
+                throw new AuraHandledException('Pytanie kontrolne musi mieć poprawną odpowiedź.');
+            }
         }
         upsert questions;
 
@@ -171,131 +239,138 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
         return survey;
     }
 
+
+    // ======== 10) Metoda getQuestions (zmodyfikowana) ========
     @AuraEnabled(cacheable=true)
     public static List<Question_PROJ__c> getQuestions(Id surveyId) {
         return [
             SELECT Id,
-                Question_Text__c,
-                Choices__c,
-                Is_MultiSelect__c,
-                Survey__r.End_Date__c
+                   Question_Text__c,
+                   Choices__c,
+                   Is_MultiSelect__c,
+                   Survey__r.End_Date__c,
+                   Is_Control_c__c,
+                   Correct_Choice__c
             FROM Question_PROJ__c
             WHERE Survey__c = :surveyId
         ];
     }
 
 
-
+    // ======== 11) Metoda submitResponses ========
     @AuraEnabled
     public static void submitResponses(List<Response_PROJ__c> responses, Id userLoginId) {
         if (responses.isEmpty()) {
             throw new AuraHandledException('No responses to submit.');
         }
+        Id surveyId = [
+            SELECT Survey__c 
+            FROM Question_PROJ__c 
+            WHERE Id = :responses[0].Question_PROJ__c 
+            LIMIT 1
+        ].Survey__c;
 
-    Id surveyId = [SELECT Survey__c FROM Question_PROJ__c WHERE Id = :responses[0].Question_PROJ__c LIMIT 1].Survey__c;
-    Survey_PROJ__c survey = [SELECT End_Date__c FROM Survey_PROJ__c WHERE Id = :surveyId LIMIT 1];
-
-    if (survey.End_Date__c != null && survey.End_Date__c < System.now()) {
-        throw new AuraHandledException('This survey has already expired.');
-    }
-
-    Boolean alreadySubmitted = [
-        SELECT COUNT()
-        FROM Response_PROJ__c
-        WHERE Question_PROJ__r.Survey__c = :surveyId
-        AND User_Login__c = :userLoginId
-    ] > 0;
-
-    if (alreadySubmitted) {
-        throw new AuraHandledException('You have already submitted this survey.');
-    }
-
-    for (Response_PROJ__c r : responses) {
-        r.User_Login__c = userLoginId;
-    }
-
-    insert responses;
-}
-
-@AuraEnabled
-public static void submitSurveyRating(Id surveyId, Integer rating) {
-    Id currentUserLoginId = [
-        SELECT Id FROM User_Login__c WHERE CreatedById = :UserInfo.getUserId()
-        LIMIT 1
-    ].Id;
-
-    // Sprawdź, czy użytkownik już ocenił tę ankietę
-    List<SurveyRating_PROJ__c> existing = [
-        SELECT Id
-        FROM SurveyRating_PROJ__c
-        WHERE Survey_PROJ__c = :surveyId AND User_Login__c = :currentUserLoginId
-        LIMIT 1
-    ];
-
-    if (!existing.isEmpty()) {
-        throw new AuraHandledException('Już oceniłeś tę ankietę.');
-    }
-
-    // Utwórz nową ocenę
-    SurveyRating_PROJ__c newRating = new SurveyRating_PROJ__c();
-    newRating.Survey_PROJ__c = surveyId;
-    newRating.User_Login__c = currentUserLoginId;
-    newRating.Rating__c = rating;
-
-    insert newRating;
-}
-
-
-
-
-
-
-
-@AuraEnabled(cacheable=true)
-public static List<Survey_PROJ__c> getFilledSurveys(Id userLoginId) {
-    // Pobierz ID ankiet, które użytkownik już ocenił
-    Set<Id> ratedSurveyIds = new Set<Id>();
-    for (SurveyRating_PROJ__c sr : [
-        SELECT Survey_PROJ__c
-        FROM SurveyRating_PROJ__c
-        WHERE User_Login__c = :userLoginId
-    ]) {
-        ratedSurveyIds.add(sr.Survey_PROJ__c);
-    }
-
-    // Pobierz ID ankiet, które użytkownik wypełnił
-    Set<Id> filledSurveyIds = new Set<Id>();
-    for (Response_PROJ__c r : [
-        SELECT Question_PROJ__r.Survey__c
-        FROM Response_PROJ__c
-        WHERE User_Login__c = :userLoginId
-    ]) {
-        Id sid = r.Question_PROJ__r.Survey__c;
-        if (!ratedSurveyIds.contains(sid)) {
-            filledSurveyIds.add(sid);
+        Survey_PROJ__c survey = [
+            SELECT End_Date__c 
+            FROM Survey_PROJ__c 
+            WHERE Id = :surveyId 
+            LIMIT 1
+        ];
+        if (survey.End_Date__c != null && survey.End_Date__c < System.now()) {
+            throw new AuraHandledException('This survey has already expired.');
         }
+
+        Boolean alreadySubmitted = [
+            SELECT COUNT()
+            FROM Response_PROJ__c
+            WHERE Question_PROJ__r.Survey__c = :surveyId
+              AND User_Login__c = :userLoginId
+        ] > 0;
+        if (alreadySubmitted) {
+            throw new AuraHandledException('You have already submitted this survey.');
+        }
+
+        for (Response_PROJ__c r : responses) {
+            r.User_Login__c = userLoginId;
+        }
+        insert responses;
     }
 
-    if (filledSurveyIds.isEmpty()) return new List<Survey_PROJ__c>();
 
-    return [
-        SELECT Id, Title_c__c, End_Date__c
-        FROM Survey_PROJ__c
-        WHERE Id IN :filledSurveyIds
-        ORDER BY Title_c__c
-    ];
-}
+    // ======== 12) Metoda submitSurveyRating ========
+    @AuraEnabled
+    public static void submitSurveyRating(Id surveyId, Integer rating) {
+        Id currentUserLoginId = [
+            SELECT Id 
+            FROM User_Login__c 
+            WHERE CreatedById = :UserInfo.getUserId() 
+            LIMIT 1
+        ].Id;
 
-@AuraEnabled(cacheable=true)
-public static Decimal getAverageRating(Id surveyId) {
-    AggregateResult result = [
-        SELECT AVG(Rating__c) avgRating
-        FROM SurveyRating_PROJ__c
-        WHERE Survey_PROJ__c = :surveyId
-    ];
+        List<SurveyRating_PROJ__c> existing = [
+            SELECT Id 
+            FROM SurveyRating_PROJ__c 
+            WHERE Survey_PROJ__c = :surveyId 
+              AND User_Login__c = :currentUserLoginId 
+            LIMIT 1
+        ];
+        if (!existing.isEmpty()) {
+            throw new AuraHandledException('Już oceniłeś tę ankietę.');
+        }
 
-    return (Decimal)result.get('avgRating');
-}
+        SurveyRating_PROJ__c newRating = new SurveyRating_PROJ__c();
+        newRating.Survey_PROJ__c  = surveyId;
+        newRating.User_Login__c  = currentUserLoginId;
+        newRating.Rating__c      = rating;
+        insert newRating;
+    }
 
+
+    // ======== 13) Metoda getFilledSurveys ========
+    @AuraEnabled(cacheable=true)
+    public static List<Survey_PROJ__c> getFilledSurveys(Id userLoginId) {
+        Set<Id> ratedSurveyIds = new Set<Id>();
+        for (SurveyRating_PROJ__c sr : [
+            SELECT Survey_PROJ__c 
+            FROM SurveyRating_PROJ__c 
+            WHERE User_Login__c = :userLoginId
+        ]) {
+            ratedSurveyIds.add(sr.Survey_PROJ__c);
+        }
+
+        Set<Id> filledSurveyIds = new Set<Id>();
+        for (Response_PROJ__c r : [
+            SELECT Question_PROJ__r.Survey__c 
+            FROM Response_PROJ__c 
+            WHERE User_Login__c = :userLoginId
+        ]) {
+            Id sid = r.Question_PROJ__r.Survey__c;
+            if (!ratedSurveyIds.contains(sid)) {
+                filledSurveyIds.add(sid);
+            }
+        }
+
+        if (filledSurveyIds.isEmpty()) {
+            return new List<Survey_PROJ__c>();
+        }
+        return [
+            SELECT Id, Title_c__c, End_Date__c 
+            FROM Survey_PROJ__c 
+            WHERE Id IN :filledSurveyIds 
+            ORDER BY Title_c__c
+        ];
+    }
+
+
+    // ======== 14) Metoda getAverageRating ========
+    @AuraEnabled(cacheable=true)
+    public static Decimal getAverageRating(Id surveyId) {
+        AggregateResult result = [
+            SELECT AVG(Rating__c) avgRating 
+            FROM SurveyRating_PROJ__c 
+            WHERE Survey_PROJ__c = :surveyId
+        ];
+        return (Decimal) result.get('avgRating');
+    }
 
 }

@@ -1,0 +1,30 @@
+<template>
+  <template if:true={isAuthorized}>
+    <c-logout-button></c-logout-button>
+
+    <lightning-card title="Control Question Stats" icon-name="utility:chart">
+      <div class="slds-p-around_medium">
+        <lightning-combobox
+          name="surveyPicker"
+          label="Wybierz ankietę"
+          placeholder="-- wybierz ankietę --"
+          options={surveyOptions}
+          value={selectedSurveyId}
+          onchange={handleSurveyChange}>
+        </lightning-combobox>
+
+        <template if:true={showChart}>
+          <div class="slds-m-top_medium slds-grid slds-grid_align-center">
+            <canvas lwc:dom="manual" width="500" height="300"></canvas>
+          </div>
+        </template>
+
+        <template if:true={showNoStatsMessage}>
+          <p class="slds-m-top_medium slds-text-color_weak">
+            Brak pytań kontrolnych lub brak odpowiedzi dla wybranej ankiety.
+          </p>
+        </template>
+      </div>
+    </lightning-card>
+  </template>
+</template>
