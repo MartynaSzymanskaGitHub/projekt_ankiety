@@ -52,20 +52,29 @@ export default class SurveyCreator extends LightningElement {
   handleEndDateChange(e)     { this.endDate     = e.target.value; }
   handleCategoryChange(e)    { this.selectedCategoryId = e.detail.value; }
 
-  addQuestion() {
-    const nextId = this.questions.length + 1;
-    this.questions = [
-      ...this.questions,
-      {
-        id: nextId,
-        text: '',
-        multi: false,
-        isControl: false,
-        radioGroupName: `correct-${nextId}`,
-        choices: [{ id: uid(), value: '', isCorrect: false }]
-      }
-    ];
-  }
+addQuestion() {
+  const newId = this.questions.length + 1;
+  this.questions = [
+    ...this.questions,
+    {
+      id: newId,
+      text: '',
+      multi: false,
+      isControl: false,
+      radioGroupName: `control-${newId}`,
+      choices: [
+        { id: 1, value: '', isCorrect: false },
+        { id: 2, value: '', isCorrect: false }
+      ]
+    }
+  ];
+}
+
+get disableControlQuestion() {
+  return !(this.questions.length >= 5 && this.questions.length % 5 === 0);
+}
+
+
 
   removeQuestion(e) {
     const id = Number(e.target.dataset.id);

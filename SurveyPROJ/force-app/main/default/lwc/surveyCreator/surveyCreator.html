@@ -55,11 +55,14 @@
             </lightning-input>
 
             <lightning-input type="checkbox"
-                             label="Czy to pytanie kontrolne?"
-                             data-id={q.id}
-                             checked={q.isControl}
-                             onchange={toggleIsControl}>
+                            label="Control question?"
+                            data-id={q.id}
+                            checked={q.isControl}
+                            disabled={disableControlQuestion}
+                            message-when-value-missing="Dodaj kolejne pytania, aby móc dodać pytanie kontrolne"
+                            onchange={toggleIsControl}>
             </lightning-input>
+
 
             <template for:each={q.choices} for:item="choice">
               <div key={choice.id} class="slds-grid slds-align-spread slds-m-top_small slds-p-bottom_xx-small">

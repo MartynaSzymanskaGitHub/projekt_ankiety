@@ -13,8 +13,8 @@ export default class SurveyControlStats extends LightningElement {
 
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
-if (!user || user.Role__c !== 'Admin') {
-      alert('Admin can only enter controls stats');
+    if (!user || user.Role__c !== 'Admin') {
+      alert('Tylko administrator ma dostęp do statystyk pytań kontrolnych.');
       window.location.href = '/lightning/n/Login';
       return;
     }
@@ -30,6 +30,11 @@ if (!user || user.Role__c !== 'Admin') {
       .catch(error => {
         this.toast('Błąd', error.body?.message || error.message, 'error');
       });
+  }
+
+  // Pomocnicza funkcja do logiki tworzenia pytań w innym komponencie
+  isControlDisabled(questionId) {
+    return questionId % 5 !== 0;
   }
 
   get showNoStatsMessage() {
@@ -53,7 +58,6 @@ if (!user || user.Role__c !== 'Admin') {
         this.totalCorrect = correct;
         this.totalIncorrect = incorrect;
 
-        // Najpierw ustaw showChart, potem w renderedCallback dorysujemy
         this.showChart = true;
       })
       .catch(error => {
@@ -62,7 +66,6 @@ if (!user || user.Role__c !== 'Admin') {
   }
 
   renderedCallback() {
-    // Jeśli canvas istnieje i showChart, renderujemy wykres
     if (this.showChart) {
       const canvas = this.template.querySelector('canvas');
       if (canvas) {
