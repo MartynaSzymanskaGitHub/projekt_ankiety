@@ -1,5 +1,6 @@
 <template>
-  <lightning-card title="Oceń wypełnioną ankietę" icon-name="utility:feedback">
+  <lightning-card title="Oceń wypełnioną ankietę" icon-name="utility:feedback">    
+    <c-logout-button></c-logout-button>
     <div class="slds-p-around_medium">
       <template if:true={surveyOptions.length}>
         <lightning-combobox

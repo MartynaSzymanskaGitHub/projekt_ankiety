@@ -1,49 +1,44 @@
-/* --- KONTENER CAŁEGO WYKRESU --- */
 .chart-container {
-    /* zwęź ↔ lub poszerz tu – podaj dowolną wartość */
-    max-width: 600px;        /* ← ZMIEŃ: 420 px → 600 px (szerszy blok) */
-    margin: 0 auto;          /* wycentrowanie */
+    max-width: 600px;     
+    margin: 0 auto;         
 }
 
-/* --- WIERSZ (jeden rekord) --- */
 .row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;            /* odstęp między kolumnami */
-    margin: 0.75rem 0;       /* odstęp między wierszami */
+    gap: 0.75rem;       
+    margin: 0.75rem 0;    
 }
 
-/* --- TYTUŁ ANKIETY --- */
+
 .label {
-    width: 220px;            /* szersza kolumna na tekst */
-    font-size: 1rem;         /* ← ZMIEŃ: 0.875rem → 1 rem (większa czcionka) */
-    font-weight: 600;        /* pół-bold dla czytelności */
+    width: 220px;         
+    font-size: 1rem;       
+    font-weight: 600;     
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* --- „TOR” PASKA --- */
+
 .track {
-    flex: 1 1 auto;          /* rośnie, zajmując wolne miejsce */
-    height: 20px;            /* ← ZMIEŃ: 14 px → 20 px (grubszy pasek) */
+    flex: 1 1 auto;       
+    height: 20px;          
     border-radius: 6px;
     background: #f3f6f9;
     position: relative;
 }
 
-/* --- WYPEŁNIENIE PASKA --- */
 .fill {
     height: 100%;
     border-radius: 6px;
     background: #2e8be0;
-    transition: width 0.6s ease-out;   /* płynne nabieganie */
+    transition: width 0.6s ease-out;   
 }
 
-/* --- WARTOŚĆ LICZBOWA --- */
 .value {
-    width: 64px;             /* więcej miejsca przy większej czcionce */
-    font-size: 1rem;         /* ← ZMIEŃ: 0.875rem → 1 rem */
+    width: 64px;           
+    font-size: 1rem;      
     font-weight: 600;
     text-align: right;
 }

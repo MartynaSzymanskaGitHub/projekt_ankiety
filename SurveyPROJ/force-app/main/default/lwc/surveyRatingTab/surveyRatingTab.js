@@ -26,6 +26,7 @@ export default class SurveyRatingTab extends LightningElement {
 
     if (!ALLOWED_ROLES.includes(this.userRole)) {
       alert('User and Worker can rate the surveys.');
+      localStorage.removeItem('user');
       window.location.href = '/lightning/n/Login';
       return;
     }

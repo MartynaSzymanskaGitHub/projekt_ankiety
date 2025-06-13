@@ -234,7 +234,7 @@ public with sharing class SurveyController {
         upsert questions;
 
         if (isNew) {
-            SurveyMailer.sendSurveyNotification(survey);
+         //   SurveyMailer.sendSurveyNotification(survey);
         }
         return survey;
     }

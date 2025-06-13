@@ -20,7 +20,7 @@ export default class LoginPage extends LightningElement {
         localStorage.setItem('user', JSON.stringify(user));
         this.dispatchEvent(new ShowToastEvent({
           title: 'Zalogowano',
-          message: `Witaj, ${user.Username__c}`,
+          message: `Witaj`,
           variant: 'success'
         }));
         window.location.href = '/lightning/n/Survey_Results';

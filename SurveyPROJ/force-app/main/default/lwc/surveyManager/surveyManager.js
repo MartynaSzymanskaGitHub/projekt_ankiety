@@ -29,6 +29,7 @@ export default class SurveyManager extends LightningElement {
     
     if (user.Role__c !== 'Admin') {
       alert('Unauthorized role. Sending to loading page...');
+      localStorage.removeItem('user');
       window.location.href = '/lightning/n/Login'; 
     }
       this.isAuthorized = true;

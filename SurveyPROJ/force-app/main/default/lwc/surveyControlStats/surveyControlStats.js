@@ -14,7 +14,8 @@ export default class SurveyControlStats extends LightningElement {
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.Role__c !== 'Admin') {
-      alert('Tylko administrator ma dostęp do statystyk pytań kontrolnych.');
+       alert('Unauthorized role. Sending to loading page...');
+      localStorage.removeItem('user');
       window.location.href = '/lightning/n/Login';
       return;
     }
@@ -32,7 +33,6 @@ export default class SurveyControlStats extends LightningElement {
       });
   }
 
-  // Pomocnicza funkcja do logiki tworzenia pytań w innym komponencie
   isControlDisabled(questionId) {
     return questionId % 5 !== 0;
   }

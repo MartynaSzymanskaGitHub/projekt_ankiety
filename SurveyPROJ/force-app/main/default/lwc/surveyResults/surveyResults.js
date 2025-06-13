@@ -58,7 +58,7 @@ export default class SurveyResults extends LightningElement {
         this.averageRating = avg !== null ? avg.toFixed(2) : 'Brak ocen';
       })
       .catch(err => {
-        this.toast('Error', 'Nie udało się załadować średniej oceny', 'error');
+        this.toast('Error', 'Cannot load average ratings', 'error');
       });
   }
 

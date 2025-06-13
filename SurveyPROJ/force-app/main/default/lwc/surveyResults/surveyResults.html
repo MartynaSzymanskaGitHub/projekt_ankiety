@@ -9,7 +9,6 @@
         <c-survey-top-chart></c-survey-top-chart>
     </lightning-card>
       <div class="slds-p-around_medium">
-        <!-- wybór ankiety -->
         <lightning-combobox
           label="Select Survey"
           placeholder="-- select survey --"
@@ -18,7 +17,6 @@
           onchange={handleSurveyChange}>
         </lightning-combobox>
 
-        <!-- tabela odpowiedzi -->
         <template if:true={rowData}>
           <table class="slds-table slds-table_cell-buffer slds-m-top_medium">
             <thead>
@@ -41,7 +39,6 @@
             </tbody>
           </table>
 
-          <!-- liczba odpowiedzi i średnia -->
           <div class="slds-m-top_medium slds-text-title_bold slds-grid slds-grid_align-spread">
             <span>Total responses submitted: {totalCount}</span>
             <span>Average rating: {averageRating}</span>
