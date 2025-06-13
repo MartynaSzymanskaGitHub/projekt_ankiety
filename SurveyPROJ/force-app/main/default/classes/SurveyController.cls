@@ -1,6 +1,5 @@
 public with sharing class SurveyController {
 
-    // ======== Klasy pomocnicze (DTO) ========
     public class OptionStat {
         @AuraEnabled public String  questionText;
         @AuraEnabled public String  choice;
@@ -24,7 +23,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 1) Metoda getTop3RatedSurveysDynamic ========
     @AuraEnabled(cacheable=true)
     public static List<SurveyAverageRating> getTop3RatedSurveysDynamic() {
         AggregateResult[] results = [
@@ -51,7 +49,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 2) Metoda getAllSurveysWithSorting ========
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveysWithSorting(Boolean ascending) {
         String direction = ascending ? 'ASC' : 'DESC';
@@ -64,7 +61,7 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 3) Metoda getAllSurveys ========
+
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveys() {
         return [
@@ -75,7 +72,7 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 4) Metoda getSurveysForUser ========
+
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
         User_Login__c u = [
@@ -110,7 +107,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 5) Metoda hasUserSubmitted ========
     @AuraEnabled(cacheable=true)
     public static Boolean hasUserSubmitted(Id surveyId, Id userLoginId) {
         List<Response_PROJ__c> existingResponses = [
@@ -124,7 +120,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 6) Metoda getSurveyStats ========
     @AuraEnabled(cacheable=true)
     public static List<OptionStat> getSurveyStats(Id surveyId) {
         Map<Id, String> questionMap = new Map<Id, String>();
@@ -155,21 +150,17 @@ public with sharing class SurveyController {
         return out;
     }
 
-
-    // ======== 7) Metoda deleteSurvey ========
     @AuraEnabled 
     public static void deleteSurvey(Id surveyId) {
         delete new Survey_PROJ__c(Id = surveyId);
     }
 
 
-    // ======== 8) Metoda getControlQuestionStats (dodana) ========
     @AuraEnabled(cacheable=true)
     public static List<ControlAnswerStat> getControlQuestionStats(Id surveyId) {
         Map<Id, String> correctAnswers = new Map<Id, String>();
         Map<Id, String> questionTexts  = new Map<Id, String>();
 
-        // Poniżej upewnij się, że pole API Name to "Is_Control_c__c"
         for (Question_PROJ__c q : [
             SELECT Id, Question_Text__c, Correct_Choice__c, Is_Control_c__c
             FROM Question_PROJ__c
@@ -216,7 +207,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 9) Metoda saveSurvey (zmodyfikowana o kontrolne pytania) ========
     @AuraEnabled
     public static Survey_PROJ__c saveSurvey(
         Survey_PROJ__c survey,
@@ -234,13 +224,12 @@ public with sharing class SurveyController {
         upsert questions;
 
         if (isNew) {
-         //   SurveyMailer.sendSurveyNotification(survey);
+            SurveyMailer.sendSurveyNotification(survey);
         }
         return survey;
     }
 
 
-    // ======== 10) Metoda getQuestions (zmodyfikowana) ========
     @AuraEnabled(cacheable=true)
     public static List<Question_PROJ__c> getQuestions(Id surveyId) {
         return [
@@ -257,7 +246,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 11) Metoda submitResponses ========
     @AuraEnabled
     public static void submitResponses(List<Response_PROJ__c> responses, Id userLoginId) {
         if (responses.isEmpty()) {
@@ -297,7 +285,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 12) Metoda submitSurveyRating ========
     @AuraEnabled
     public static void submitSurveyRating(Id surveyId, Integer rating) {
         Id currentUserLoginId = [
@@ -326,7 +313,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 13) Metoda getFilledSurveys ========
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getFilledSurveys(Id userLoginId) {
         Set<Id> ratedSurveyIds = new Set<Id>();
@@ -362,7 +348,6 @@ public with sharing class SurveyController {
     }
 
 
-    // ======== 14) Metoda getAverageRating ========
     @AuraEnabled(cacheable=true)
     public static Decimal getAverageRating(Id surveyId) {
         AggregateResult result = [

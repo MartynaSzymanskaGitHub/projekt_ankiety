@@ -1,9 +1,5 @@
-/**  CategoryController.cls  **/
 public with sharing class CategoryController {
 
-    /* =====================================================
-       ===============  ZAPIS KATEGORII  ====================
-       ===================================================== */
  @AuraEnabled
     public static void saveCategory(String name, List<String> allowedRoles) {
         if (String.isBlank(name)) {
@@ -17,8 +13,6 @@ public with sharing class CategoryController {
         cat.Name           = name;
         cat.Allowed_For__c = String.join(allowedRoles, ';');
         insert cat;
-
-        /* automatyczne przypięcie do użytkowników wybranych ról */
         UserCategoryService.assignCategoryToUsers(cat.Id, allowedRoles);
     }
 
@@ -30,8 +24,6 @@ public with sharing class CategoryController {
         }
         delete new Category_PROJ__c(Id = catId);
     }
-
-    /* ---------------------  ODCZYT  --------------------- */
 
     @AuraEnabled(cacheable=true)
     public static List<Category_PROJ__c> getAllCategories() {

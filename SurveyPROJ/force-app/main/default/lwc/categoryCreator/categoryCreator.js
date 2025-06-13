@@ -5,11 +5,9 @@ import deleteCategory       from '@salesforce/apex/CategoryController.deleteCate
 import { ShowToastEvent }   from 'lightning/platformShowToastEvent';
 
 export default class CategoryCreator extends LightningElement {
-  /* --- formularz --- */
   @track categoryName  = '';
   @track selectedRoles = [];
 
-  /* --- dane --- */
   @track categories    = [];
   isAuthorized         = false;
 

@@ -1,6 +1,5 @@
 public class SurveyReminderCronHelper {
     public static void scheduleTwiceDaily() {
-        // Usuń stare joby
         for (CronTrigger c : [SELECT Id, CronJobDetail.Name FROM CronTrigger WHERE CronJobDetail.Name LIKE 'SurveyReminder_%']) {
             System.abortJob(c.Id);
         }

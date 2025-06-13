@@ -13,7 +13,6 @@ public class SurveyReminderBatch implements Database.Batchable<SObject> {
 
     public void execute(Database.BatchableContext bc, List<Survey_PROJ__c> surveys) {
         for (Survey_PROJ__c survey : surveys) {
-            // Pobierz ankietę z kategorią i dozwoloną rolą
             survey = [
                 SELECT Id, Title_c__c, End_Date__c, Category_PROJ__r.Allowed_For__c
                 FROM Survey_PROJ__c
@@ -23,7 +22,6 @@ public class SurveyReminderBatch implements Database.Batchable<SObject> {
 
             String allowedRole = (survey.Category_PROJ__r != null) ? survey.Category_PROJ__r.Allowed_For__c : null;
 
-            // Pobierz odpowiedzi do ankiety
             List<Response_PROJ__c> responses = [
                 SELECT User_Login__c FROM Response_PROJ__c
                 WHERE Survey__c = :survey.Id
@@ -36,9 +34,7 @@ public class SurveyReminderBatch implements Database.Batchable<SObject> {
                 }
             }
 
-
-            // Pobierz użytkowników, którzy jeszcze NIE odpowiedzieli i mają odpowiednią rolę (jeśli wskazana)
-            List<User_Login__c> users;
+           List<User_Login__c> users;
             if (allowedRole != null) {
                 users = [
                     SELECT Name, Role__c FROM User_Login__c
