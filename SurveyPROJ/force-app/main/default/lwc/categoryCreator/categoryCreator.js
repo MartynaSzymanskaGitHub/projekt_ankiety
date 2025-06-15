@@ -16,7 +16,7 @@ export default class CategoryCreator extends LightningElement {
     { label: 'Worker', value: 'Worker' }
   ];
 
-  /* ---------- lifecycle ---------- */
+
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.Role__c !== 'Admin') {
@@ -29,12 +29,12 @@ export default class CategoryCreator extends LightningElement {
     this.refreshCategories();
   }
 
-  /* ---------- handlery ---------- */
+
   handleNameChange   = e => { this.categoryName  = e.target.value; };
   handleRoleChange   = e => { this.selectedRoles = e.detail.value; };
   get disableSave()  { return !this.categoryName || this.selectedRoles.length === 0; }
 
-  /* ---------- zapisz ---------- */
+
   handleSave() {
     saveCategory({ name: this.categoryName, allowedRoles: this.selectedRoles })
       .then(() => {
@@ -46,9 +46,9 @@ export default class CategoryCreator extends LightningElement {
       .catch(err => this.toast('Błąd', err.body?.message || err.message, 'error'));
   }
 
-  /* ---------- usuń ---------- */
+
   handleDelete(e) {
-    const catId = e.currentTarget.dataset.id;   // <- KLUCZOWA zmiana
+    const catId = e.currentTarget.dataset.id;   
     deleteCategory({ catId })
       .then(() => {
         this.toast('Sukces', 'Kategoria usunięta', 'success');
@@ -57,14 +57,12 @@ export default class CategoryCreator extends LightningElement {
       .catch(err => this.toast('Błąd', err.body?.message || err.message, 'error'));
   }
 
-  /* ---------- refresh ---------- */
   refreshCategories() {
     getAllCategories()
       .then(data => { this.categories = data; })
       .catch(()   => { this.toast('Błąd', 'Nie udało się pobrać listy kategorii', 'error'); });
   }
 
-  /* ---------- toast util ---------- */
   toast(title, message, variant) {
     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
   }

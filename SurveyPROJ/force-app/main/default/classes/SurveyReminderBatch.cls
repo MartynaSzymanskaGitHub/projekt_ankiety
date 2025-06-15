@@ -62,7 +62,7 @@ public class SurveyReminderBatch implements Database.Batchable<SObject> {
             body += 'Wszyscy użytkownicy już wypełnili tę ankietę.';
         }
 
-        System.debug('Treść maila:\n' + body); // opcjonalne
+        System.debug('Treść maila:\n' + body); 
 
         try {
             Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();

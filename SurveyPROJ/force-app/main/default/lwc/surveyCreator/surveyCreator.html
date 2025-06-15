@@ -47,12 +47,15 @@
                                 onchange={handleQuestionTextChange}>
             </lightning-textarea>
 
-            <lightning-input type="checkbox"
-                             label="Allow Multiple Answers"
-                             data-id={q.id}
-                             checked={q.multi}
-                             onchange={toggleMultiSelect}>
+            <lightning-input
+                    type="checkbox"
+                    label="Allow multiple answers?"
+                    checked={q.multi}
+                    data-id={q.id}
+                    onchange={toggleMultiSelect}
+                    disabled={q.isControl}>
             </lightning-input>
+
 
             <lightning-input type="checkbox"
                             label="Control question?"

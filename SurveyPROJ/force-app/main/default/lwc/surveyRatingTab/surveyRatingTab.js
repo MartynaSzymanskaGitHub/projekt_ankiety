@@ -59,11 +59,18 @@ export default class SurveyRatingTab extends LightningElement {
   }
 
   handleSubmitRating() {
-    const numericRating = parseInt(this.rating, 10);
-    if (!this.selectedSurveyId || !numericRating || numericRating < 1 || numericRating > 5) {
-      this.showToast('Błąd walidacji', 'Wybierz ankietę i ocenę od 1 do 5.', 'warning');
+    const numericRating = Number(this.rating);
+
+    if (
+      !this.selectedSurveyId ||
+      !Number.isInteger(numericRating) ||
+      numericRating < 1 ||
+      numericRating > 5
+    ) {
+      this.showToast('Błąd walidacji', 'Ocena musi być liczbą całkowitą od 1 do 5.', 'warning');
       return;
     }
+
 
     submitSurveyRating({
       surveyId: this.selectedSurveyId,
