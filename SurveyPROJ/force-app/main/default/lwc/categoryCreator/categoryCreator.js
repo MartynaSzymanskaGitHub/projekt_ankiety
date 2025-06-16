@@ -43,7 +43,9 @@ export default class CategoryCreator extends LightningElement {
         this.selectedRoles = [];
         this.refreshCategories();
       })
-      .catch(err => this.toast('Błąd', err.body?.message || err.message, 'error'));
+      .catch(err => {
+      this.toast('Nie można przypisywać kategorii do więcej niż jednej roli', 'error');
+    });
   }
 
 

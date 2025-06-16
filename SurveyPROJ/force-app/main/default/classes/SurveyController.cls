@@ -62,14 +62,15 @@ public with sharing class SurveyController {
 
 
 
-    @AuraEnabled(cacheable=true)
-    public static List<Survey_PROJ__c> getAllSurveys() {
-        return [
-            SELECT Id, Title_c__c, End_Date__c
-            FROM Survey_PROJ__c
-            ORDER BY Title_c__c ASC
-        ];
-    }
+        @AuraEnabled(cacheable=true)
+        public static List<Survey_PROJ__c> getAllSurveys() {
+            return [
+                SELECT Id, Title_c__c, Description__c, End_Date__c
+                FROM Survey_PROJ__c
+                ORDER BY Title_c__c ASC
+            ];
+        }
+
 
 
 

@@ -5,9 +5,18 @@ public with sharing class CategoryController {
         if (String.isBlank(name)) {
             throw new AuraHandledException('Nazwa kategorii nie może być pusta.');
         }
-        if (![SELECT Id FROM Category_PROJ__c WHERE Name=:name LIMIT 1].isEmpty()) {
-            throw new AuraHandledException('Kategoria o tej nazwie już istnieje.');
+        String joinedRoles = String.join(allowedRoles, ';');
+
+        List<Category_PROJ__c> duplicates = [
+            SELECT Id FROM Category_PROJ__c
+            WHERE Name = :name AND Allowed_For__c = :joinedRoles
+            LIMIT 1
+        ];
+
+        if (!duplicates.isEmpty()) {
+            throw new AuraHandledException('Taka kategoria z tymi rolami już istnieje.');
         }
+
 
         Category_PROJ__c cat = new Category_PROJ__c();
         cat.Name           = name;
