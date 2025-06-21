@@ -22,6 +22,16 @@ public with sharing class SurveyController {
         @AuraEnabled public Integer incorrectCount;
     }
 
+    public class RoleResponseCount {
+    @AuraEnabled public String role;
+    @AuraEnabled public Integer count;
+
+    public RoleResponseCount(String role, Integer count) {
+        this.role = role;
+        this.count = count;
+    }
+}
+
 
 @AuraEnabled(cacheable=true)
 public static List<RoleResponseCount> getGlobalSurveyResultsByRole() {
@@ -44,16 +54,6 @@ public static List<RoleResponseCount> getGlobalSurveyResultsByRole() {
     return result;
 }
 
-
-public class RoleResponseCount {
-    @AuraEnabled public String role;
-    @AuraEnabled public Integer count;
-
-    public RoleResponseCount(String role, Integer count) {
-        this.role = role;
-        this.count = count;
-    }
-}
 
 
 @AuraEnabled(cacheable=true)
@@ -83,8 +83,6 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
     return topSurveys;
 }
 
-
-
     @AuraEnabled(cacheable=true)
     public static List<SurveyAverageRating> getTop3RatedSurveysDynamic() {
         AggregateResult[] results = [
@@ -110,7 +108,6 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
         return outList;
     }
 
-
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveysWithSorting(Boolean ascending) {
         String direction = ascending ? 'ASC' : 'DESC';
@@ -122,8 +119,6 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
         );
     }
 
-
-
         @AuraEnabled(cacheable=true)
         public static List<Survey_PROJ__c> getAllSurveys() {
             return [
@@ -132,10 +127,6 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
                 ORDER BY Title_c__c ASC
             ];
         }
-
-
-        
-
 
     @AuraEnabled(cacheable=true)
 public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
@@ -163,8 +154,6 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
     ];
 }
 
-
-
     @AuraEnabled(cacheable=true)
     public static Boolean hasUserSubmitted(Id surveyId, Id userLoginId) {
         List<Response_PROJ__c> existingResponses = [
@@ -176,7 +165,6 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
         ];
         return !existingResponses.isEmpty();
     }
-
 
     @AuraEnabled(cacheable=true)
     public static List<OptionStat> getSurveyStats(Id surveyId) {
@@ -212,7 +200,6 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
     public static void deleteSurvey(Id surveyId) {
         delete new Survey_PROJ__c(Id = surveyId);
     }
-
 
 @AuraEnabled(cacheable=true)
 public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
@@ -263,8 +250,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
     };
 }
 
-
-
     @AuraEnabled
     public static Survey_PROJ__c saveSurvey(
         Survey_PROJ__c survey,
@@ -287,7 +272,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
         return survey;
     }
 
-
     @AuraEnabled(cacheable=true)
     public static List<Question_PROJ__c> getQuestions(Id surveyId) {
         return [
@@ -302,7 +286,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
             WHERE Survey__c = :surveyId
         ];
     }
-
 
     @AuraEnabled
     public static void submitResponses(List<Response_PROJ__c> responses, Id userLoginId) {
@@ -342,7 +325,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
         insert responses;
     }
 
-
     @AuraEnabled
     public static void submitSurveyRating(Id surveyId, Integer rating) {
         Id currentUserLoginId = [
@@ -369,7 +351,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
         newRating.Rating__c      = rating;
         insert newRating;
     }
-
 
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getFilledSurveys(Id userLoginId) {
@@ -405,7 +386,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
         ];
     }
 
-
     @AuraEnabled(cacheable=true)
     public static Decimal getAverageRating(Id surveyId) {
         AggregateResult result = [
@@ -415,7 +395,6 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
         ];
         return (Decimal) result.get('avgRating');
     }
-
 
 
 public class DepartmentSurveyCompletion {
@@ -451,7 +430,6 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
         allUserIds.add(uc.User__c);
     }
 
-
     AggregateResult[] completedAgg = [
         SELECT COUNT_DISTINCT(User_Login__c) userCount
         FROM Response_PROJ__c
@@ -474,7 +452,6 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
     };
 }
 
-
 @AuraEnabled(cacheable=true)
 public static List<Question_PROJ__c> getControlQuestions(Id surveyId) {
     return [
@@ -487,7 +464,5 @@ public static List<Question_PROJ__c> getControlQuestions(Id surveyId) {
           ORDER BY Name   
     ];
 }
-
-
 
 }

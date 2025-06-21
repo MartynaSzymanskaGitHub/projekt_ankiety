@@ -24,7 +24,7 @@ public with sharing class SampleUserSeeder {
             new User_Login__c(
                 Name = 'worker1',
                 Password__c = 'worker123',
-                Role__c = 'Worker',
+                Role__c = 'User',
                 Email__c = 'martynaszy02@gmail.com'
             )
         };
