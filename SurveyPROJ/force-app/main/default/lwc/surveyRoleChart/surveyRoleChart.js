@@ -34,33 +34,53 @@ export default class SurveyRoleChart extends LightningElement {
     }
 
     initChart() {
-        const ctx = this.template.querySelector('canvas').getContext('2d');
-        this.chart = new window.Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: ['#42A5F5', '#66BB6A']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+  const ctx = this.template.querySelector('canvas').getContext('2d');
+  this.chart = new window.Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        backgroundColor: [
+          '#4CAF50', // zieleń dla “Wypełnione”
+          '#F44336'  // czerwień dla “Niewypełnione”
+        ],
+        hoverBackgroundColor: [
+          '#4CAF50AA', // półprzezroczysta zieleń na hover
+          '#F44336AA'  // półprzezroczysta czerwień na hover
+        ],
+        borderColor: ['#FFFFFF','#FFFFFF'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
     }
+  });
+}
 
-    updateChart() {
-        if (!this.selectedSurveyId) return;
 
-        getSurveyCompletionByDepartment({ surveyId: this.selectedSurveyId })
-            .then(data => {
-                const { completedUsers, notCompletedUsers } = data[0];
-                this.chart.data.labels = ['Filled', 'Not filled'];
-                this.chart.data.datasets[0].data = [completedUsers, notCompletedUsers];
-                this.chart.update();
-            })
-            .catch(error => console.error(error));
-    }
+updateChart() {
+    if (!this.selectedSurveyId) return;
+
+    getSurveyCompletionByDepartment({ surveyId: this.selectedSurveyId })
+      .then(data => {
+        const { completedUsers, notCompletedUsers } = data[0];
+
+        // ustawiasz etykiety i dane
+        this.chart.data.labels = ['Wypełnione', 'Niewypełnione'];
+        this.chart.data.datasets[0].data = [completedUsers, notCompletedUsers];
+
+        // (opcjonalnie) nadpisz kolory dynamicznie, jeśli potrzebujesz
+        this.chart.data.datasets[0].backgroundColor = [
+          '#4CAF50', // zieleń
+          '#F44336'  // czerwień
+        ];
+
+        this.chart.update();
+      })
+      .catch(error => console.error(error));
+}
+
 }

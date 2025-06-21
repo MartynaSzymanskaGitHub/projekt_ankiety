@@ -214,55 +214,55 @@ public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
     }
 
 
-    @AuraEnabled(cacheable=true)
-    public static List<ControlAnswerStat> getControlQuestionStats(Id surveyId) {
-        Map<Id, String> correctAnswers = new Map<Id, String>();
-        Map<Id, String> questionTexts  = new Map<Id, String>();
+@AuraEnabled(cacheable=true)
+public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
+    Map<Id, String> correctAnswers = new Map<Id, String>();
 
-        for (Question_PROJ__c q : [
-            SELECT Id, Question_Text__c, Correct_Choice__c, Is_Control_c__c
-            FROM Question_PROJ__c
-            WHERE Survey__c = :surveyId
-              AND Is_Control_c__c = true
-        ]) {
-            correctAnswers.put(q.Id, q.Correct_Choice__c);
-            questionTexts.put(q.Id, q.Question_Text__c);
-        }
-
-        if (correctAnswers.isEmpty()) {
-            return new List<ControlAnswerStat>();
-        }
-
-        List<AggregateResult> results = [
-            SELECT Question_PROJ__c qid, Selected_Choice__c selected, COUNT(Id) cnt
-            FROM Response_PROJ__c
-            WHERE Question_PROJ__c IN :correctAnswers.keySet()
-            GROUP BY Question_PROJ__c, Selected_Choice__c
-        ];
-
-        Map<Id, ControlAnswerStat> stats = new Map<Id, ControlAnswerStat>();
-        for (AggregateResult ar : results) {
-            Id    qid      = (Id)   ar.get('qid');
-            String selected = (String) ar.get('selected');
-            Integer cnt     = (Integer) ar.get('cnt');
-
-            if (!stats.containsKey(qid)) {
-                ControlAnswerStat stat = new ControlAnswerStat();
-                stat.questionText   = questionTexts.get(qid);
-                stat.correctCount   = 0;
-                stat.incorrectCount = 0;
-                stats.put(qid, stat);
-            }
-
-            String correct = correctAnswers.get(qid);
-            if (selected == correct) {
-                stats.get(qid).correctCount += cnt;
-            } else {
-                stats.get(qid).incorrectCount += cnt;
-            }
-        }
-        return stats.values();
+    for (Question_PROJ__c q : [
+        SELECT Id, Correct_Choice__c, Is_Control_c__c
+        FROM Question_PROJ__c
+        WHERE Survey__c = :surveyId
+        AND Is_Control_c__c = true
+    ]) {
+        correctAnswers.put(q.Id, q.Correct_Choice__c);
     }
+
+    if (correctAnswers.isEmpty()) {
+        return new List<Map<String, Integer>> {
+            new Map<String, Integer>{ 'correctCount' => 0, 'incorrectCount' => 0 }
+        };
+    }
+
+    List<AggregateResult> results = [
+        SELECT Question_PROJ__c, Selected_Choice__c, COUNT(Id) cnt
+        FROM Response_PROJ__c
+        WHERE Question_PROJ__c IN :correctAnswers.keySet()
+        GROUP BY Question_PROJ__c, Selected_Choice__c
+    ];
+
+    Integer correct = 0;
+    Integer incorrect = 0;
+
+    for (AggregateResult ar : results) {
+        Id qid = (Id)ar.get('Question_PROJ__c');
+        String selected = (String)ar.get('Selected_Choice__c');
+        Integer cnt = (Integer)ar.get('cnt');
+
+        if (selected == correctAnswers.get(qid)) {
+            correct += cnt;
+        } else {
+            incorrect += cnt;
+        }
+    }
+
+    return new List<Map<String, Integer>> {
+        new Map<String, Integer>{
+            'correctCount' => correct,
+            'incorrectCount' => incorrect
+        }
+    };
+}
+
 
 
     @AuraEnabled
@@ -477,6 +477,19 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
     };
 }
 
+
+@AuraEnabled(cacheable=true)
+public static List<Question_PROJ__c> getControlQuestions(Id surveyId) {
+  return [
+    SELECT Id,
+           Question_Text__c,
+           Correct_Choice__c
+    FROM Question_PROJ__c
+    WHERE Survey__c      = :surveyId
+      AND Is_Control__c  = true        // <-- poprawna nazwa pola
+    ORDER BY Question_Text__c
+  ];
+}
 
 
 }

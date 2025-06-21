@@ -1,0 +1,30 @@
+<template>
+  <lightning-card title="Lista pytań kontrolnych">
+    <div class="slds-p-around_medium">
+      <lightning-combobox
+        name="survey"
+        label="Wybierz ankietę"
+        value={selectedSurveyId}
+        options={surveyOptions}
+        placeholder="– wybierz –"
+        onchange={handleSurveyChange}>
+      </lightning-combobox>
+
+      <template if:true={questions.length}>
+        <lightning-datatable
+          class="slds-m-top_medium"
+          data={questions}
+          columns={columns}
+          key-field="Id"
+          hide-checkbox-column>
+        </lightning-datatable>
+      </template>
+
+      <template if:true={noData}>
+        <p class="slds-text-color_weak slds-m-top_medium">
+          Brak pytań kontrolnych w tej ankiecie.
+        </p>
+      </template>
+    </div>
+  </lightning-card>
+</template>
