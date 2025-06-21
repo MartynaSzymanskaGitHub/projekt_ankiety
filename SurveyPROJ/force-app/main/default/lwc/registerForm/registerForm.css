@@ -1,0 +1,9 @@
+:host {
+    display: block;
+    max-width: 360px;      /* szerokość panelu */
+    margin: 2rem auto;     /* wyśrodkowanie z odstępem od góry i dołu */
+}
+
+.slds-p-around_medium {
+    padding: 0.75rem;      /* zmniejszony padding wewnątrz kartki */
+}

@@ -1,65 +1,72 @@
 <template>
-  <template if:true={isAuthorized}>
-    <c-logout-button></c-logout-button>
+  <c-logout-button></c-logout-button>
+  <lightning-card title={cardTitle} icon-name="utility:add">
+    <div class="slds-p-around_medium">
+      <lightning-input
+        label="Nazwa oddziału"
+        value={categoryName}
+        onchange={handleNameChange}>
+      </lightning-input>
 
-    <lightning-card title="Dodaj oddział" icon-name="utility:add">
-      <div class="slds-p-around_medium">
+      <lightning-dual-listbox
+        name="users"
+        label="Użytkownicy"
+        source-label="Dostępni"
+        selected-label="Wybrani"
+        options={userOptions}
+        value={selectedUsers}
+        onchange={handleUserChange}
+        class="slds-m-top_medium">
+      </lightning-dual-listbox>
 
-        <lightning-input label="Nazwa oddziału"
-                         value={categoryName}
-                         onchange={handleNameChange}>
-        </lightning-input>
-
-        <lightning-dual-listbox
-          name="selectedUsers"
-          label="Użytkownicy przypisani do oddziału"
-          source-label="Dostępni użytkownicy"
-          selected-label="Wybrani użytkownicy"
-          options={userOptions}
-          value={selectedUsers}
-          onchange={handleUserChange}
-          class="slds-m-top_medium">
-        </lightning-dual-listbox>
-
-        <lightning-button variant="brand"
-                          label="Zapisz"
-                          class="slds-m-top_medium"
-                          onclick={handleSave}
-                          disabled={disableSave}>
+      <div class="slds-m-top_medium">
+        <lightning-button
+          variant="brand"
+          label={saveLabel}
+          onclick={handleSave}
+          disabled={disableSave}>
         </lightning-button>
-
-        <template if:true={categories.length}>
-          <h3 class="slds-text-heading_small slds-m-top_large">Istniejące oddziały</h3>
-
-          <div class="slds-scrollable_y" style="max-height:220px;">
-            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
-              <thead>
-                <tr>
-                  <th>Nazwa</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <template for:each={categories} for:item="c">
-                  <tr key={c.Id}>
-                    <td>{c.Name}</td>
-                    <td class="slds-text-align_right">
-                      <lightning-button-icon
-                          icon-name="utility:delete"
-                          variant="border-filled"
-                          alternative-text="Usuń"
-                          data-id={c.Id}
-                          onclick={handleDelete}>
-                      </lightning-button-icon>
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
+        <template if:true={categoryId}>
+          <lightning-button
+            label="Anuluj"
+            onclick={resetForm}
+            class="slds-m-left_small">
+          </lightning-button>
         </template>
-
       </div>
-    </lightning-card>
-  </template>
+
+      <template if:true={categories.length}>
+        <h3 class="slds-text-heading_small slds-m-top_large">Istniejące oddziały</h3>
+        <div class="slds-scrollable_y" style="max-height:220px;">
+          <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead>
+              <tr><th>Nazwa</th><th>Akcje</th></tr>
+            </thead>
+            <tbody>
+              <template for:each={categories} for:item="c">
+                <tr key={c.Id}>
+                  <td>{c.Name}</td>
+                  <td class="slds-text-align_right">
+                    <lightning-button-icon
+                      icon-name="utility:edit"
+                      alternative-text="Edytuj"
+                      data-id={c.Id}
+                      onclick={handleEdit}>
+                    </lightning-button-icon>
+                    <lightning-button-icon
+                      icon-name="utility:delete"
+                      variant="border-filled"
+                      alternative-text="Usuń"
+                      data-id={c.Id}
+                      onclick={handleDelete}>
+                    </lightning-button-icon>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </template>
+    </div>
+  </lightning-card>
 </template>
