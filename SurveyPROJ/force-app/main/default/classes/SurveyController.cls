@@ -434,7 +434,6 @@ public class DepartmentSurveyCompletion {
 
 @AuraEnabled(cacheable=true)
 public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(Id surveyId) {
-    // 1) Pobierz kategorię
     Survey_PROJ__c survey = [
         SELECT Category_PROJ__c
         FROM Survey_PROJ__c
@@ -442,7 +441,6 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
         LIMIT 1
     ];
 
-    // 2) Pobierz wszystkich użytkowników w tej kategorii
     List<User_Category_PROJ__c> allUsers = [
         SELECT User__c
         FROM User_Category_PROJ__c
@@ -453,7 +451,7 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
         allUserIds.add(uc.User__c);
     }
 
-    // 3) Policz, ilu z nich już wypełniło ankietę
+
     AggregateResult[] completedAgg = [
         SELECT COUNT_DISTINCT(User_Login__c) userCount
         FROM Response_PROJ__c
@@ -465,7 +463,6 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
         : (Integer) completedAgg[0].get('userCount');
     Integer notCompletedUsers = allUserIds.size() - completedUsers;
 
-    // 4) Nazwa działu
     String departmentName = [
         SELECT Name
         FROM Category_PROJ__c

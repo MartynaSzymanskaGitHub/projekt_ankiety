@@ -25,7 +25,7 @@ public with sharing class SampleUserSeeder {
                 Name = 'worker1',
                 Password__c = 'worker123',
                 Role__c = 'Worker',
-                Email__c = 'testowe@example.com'
+                Email__c = 'martynaszy02@gmail.com'
             )
         };
         insert users;
