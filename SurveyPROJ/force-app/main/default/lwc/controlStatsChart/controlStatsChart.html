@@ -6,7 +6,6 @@
 
     <lightning-card title="Control Question Stats" icon-name="utility:chart" class="stats-card">
       <div class="slds-p-around_medium">
-        <!-- Jeśli są ankiety do wyboru, pokaż combobox -->
         <template if:true={hasSurveys}>
           <lightning-combobox
             name="survey"
@@ -17,7 +16,6 @@
             onchange={handleSurveyChange}>
           </lightning-combobox>
         </template>
-        <!-- Jeśli nie ma żadnych ankiet, pokaż komunikat -->
         <template if:true={isEmpty}>
           <p class="slds-text-color_weak">
             Brak dostępnych ankiet do wyświetlenia statystyk.
@@ -26,11 +24,9 @@
       </div>
 
       <div class="slds-p-around_medium chart-container" style="height:300px;">
-        <!-- Po wybraniu ankiety i gdy są dane, rysuj wykres -->
         <template if:true={showChart}>
         <canvas class="chart-canvas"></canvas>
         </template>
-        <!-- Po wybraniu ankiety, ale brak danych -->
         <template if:true={showNoDataMessage}>
           <p class="slds-text-color_weak slds-m-top_medium">
             Brak danych kontrolnych do wyświetlenia.

@@ -30,10 +30,7 @@ export default class ControlStatsChart extends LightningElement {
       window.location.href = '/lightning/n/Login'; 
     }
       this.isAuthorized = true;
-    
 
-
-    // pobranie ankiet
     getAllSurveys()
       .then(list => {
         if (!list || list.length === 0) {
@@ -71,8 +68,8 @@ export default class ControlStatsChart extends LightningElement {
 
 handleSurveyChange(event) {
   this.selectedSurveyId = event.detail.value;
-  this.showChart = false;        // schowaj wykres przed każdym wyborem
-  this.chart?.destroy();         // usuń poprzedni, jeśli był
+  this.showChart = false;
+  this.chart?.destroy();
 
   getControlQuestionStats({ surveyId: this.selectedSurveyId })
     .then(data => {
@@ -84,10 +81,8 @@ handleSurveyChange(event) {
       });
 
       if (correctCount + incorrectCount > 0) {
-        // 1) pokaż canvas
         this.showChart = true;
 
-        // 2) poczekaj aż LWC wyrenderuje <canvas>
         Promise.resolve().then(() => {
           this._renderChart(correctCount, incorrectCount);
         });

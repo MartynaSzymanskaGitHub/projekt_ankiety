@@ -20,7 +20,6 @@ export default class CategoryCreator extends LightningElement {
     this.loadUsers();
   }
 
-  // gettery do label w HTML
   get cardTitle() {
     return this.categoryId ? 'Edytuj oddział' : 'Dodaj oddział';
   }
@@ -62,11 +61,9 @@ export default class CategoryCreator extends LightningElement {
 
   handleEdit(e) {
     const id = e.currentTarget.dataset.id;
-    // 1) znajdź nazwę w localnej liście
     const rec = this.categories.find(c => c.Id === id);
     this.categoryId   = rec.Id;
     this.categoryName = rec.Name;
-    // 2) pobierz przypisanych userów
     getAssignedUserIds({ catId: id })
       .then(ids => {
         this.selectedUsers = ids;
