@@ -183,7 +183,7 @@ async loadSurveys() {
 
   get categoryOptions() {
     return [
-      { label: 'Wszystkie', value: 'all' },
+      { label: 'All', value: 'all' },
       ...this.categories.map(name => ({ label: name, value: name }))
     ];
   }
@@ -197,8 +197,8 @@ async loadSurveys() {
       );
     }
     return [...filtered].sort((a, b) => {
-      const aDate = a.End_Date__c ? new Date(a.End_Date__c) : new Date(8640000000000000);
-      const bDate = b.End_Date__c ? new Date(b.End_Date__c) : new Date(8640000000000000);
+      const aDate = new Date(a.End_Date__c);
+      const bDate = new Date(b.End_Date__c);
       return this.isAscending ? aDate - bDate : bDate - aDate;
     });
   }
