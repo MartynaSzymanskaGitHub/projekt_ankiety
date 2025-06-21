@@ -67,7 +67,7 @@ export default class SurveyRatingTab extends LightningElement {
       numericRating < 1 ||
       numericRating > 5
     ) {
-      this.showToast('Błąd walidacji', 'Ocena musi być liczbą całkowitą od 1 do 5.', 'warning');
+      this.showToast('Błąd walidacji', 'Give an integer between (1-5).', 'warning');
       return;
     }
 
@@ -77,7 +77,7 @@ export default class SurveyRatingTab extends LightningElement {
       rating: numericRating
     })
       .then(() => {
-        this.showToast('Sukces', 'Ocena została zapisana.', 'success');
+        this.showToast('Sukces', 'Rating successfully saved.', 'success');
         this.rating = '';
         this.selectedSurveyId = '';
         window.location.reload();

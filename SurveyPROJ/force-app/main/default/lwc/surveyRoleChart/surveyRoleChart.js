@@ -42,12 +42,12 @@ export default class SurveyRoleChart extends LightningElement {
       datasets: [{
         data: [],
         backgroundColor: [
-          '#4CAF50', // zieleń dla “Wypełnione”
-          '#F44336'  // czerwień dla “Niewypełnione”
+          '#4CAF50', 
+          '#F44336'  
         ],
         hoverBackgroundColor: [
-          '#4CAF50AA', // półprzezroczysta zieleń na hover
-          '#F44336AA'  // półprzezroczysta czerwień na hover
+          '#4CAF50AA', 
+          '#F44336AA'  
         ],
         borderColor: ['#FFFFFF','#FFFFFF'],
         borderWidth: 1
@@ -68,19 +68,23 @@ updateChart() {
       .then(data => {
         const { completedUsers, notCompletedUsers } = data[0];
 
-        // ustawiasz etykiety i dane
-        this.chart.data.labels = ['Wypełnione', 'Niewypełnione'];
-        this.chart.data.datasets[0].data = [completedUsers, notCompletedUsers];
+        this.chart.data.labels = ['Filled', 'Not filled'];
+        this.chart.data.datasets[0].data = [notCompletedUsers, completedUsers];
 
-        // (opcjonalnie) nadpisz kolory dynamicznie, jeśli potrzebujesz
         this.chart.data.datasets[0].backgroundColor = [
-          '#4CAF50', // zieleń
-          '#F44336'  // czerwień
+          '#4CAF50', 
+          '#F44336' 
+        ];
+
+        this.chart.data.datasets[0].hoverBackgroundColor = [
+          '#F44336AA',
+          '#4CAF50AA'
         ];
 
         this.chart.update();
       })
       .catch(error => console.error(error));
 }
+
 
 }

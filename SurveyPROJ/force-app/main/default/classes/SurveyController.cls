@@ -338,19 +338,31 @@ public static List<Map<String, Integer>> getControlQuestionStats(Id surveyId) {
             SELECT Id 
             FROM SurveyRating_PROJ__c 
             WHERE Survey_PROJ__c = :surveyId 
-              AND User_Login__c = :currentUserLoginId 
+            AND User_Login__c = :currentUserLoginId 
             LIMIT 1
         ];
         if (!existing.isEmpty()) {
-            throw new AuraHandledException('Już oceniłeś tę ankietę.');
+            throw new AuraHandledException('Already submitted your rating.');
+        }
+
+        Survey_PROJ__c survey = [
+            SELECT End_Date__c
+            FROM Survey_PROJ__c
+            WHERE Id = :surveyId
+            LIMIT 1
+        ];
+
+        if (survey.End_Date__c != null && survey.End_Date__c < System.now()) {
+            throw new AuraHandledException('Cannot rate after survey ends.');
         }
 
         SurveyRating_PROJ__c newRating = new SurveyRating_PROJ__c();
         newRating.Survey_PROJ__c  = surveyId;
-        newRating.User_Login__c  = currentUserLoginId;
-        newRating.Rating__c      = rating;
+        newRating.User_Login__c   = currentUserLoginId;
+        newRating.Rating__c       = rating;
         insert newRating;
     }
+
 
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getFilledSurveys(Id userLoginId) {

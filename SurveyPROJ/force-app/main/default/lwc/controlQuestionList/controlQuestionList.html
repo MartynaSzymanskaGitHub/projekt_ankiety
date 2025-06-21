@@ -1,10 +1,10 @@
 <template>
-  <lightning-card title="Lista pytań kontrolnych">
+  <lightning-card title="Control question list">
     <div class="slds-p-around_medium">
       <lightning-combobox
         name="survey"
-        label="Wybierz ankietę"
-        placeholder="– wybierz –"
+        label="Choose the survey"
+        placeholder="– choose –"
         options={surveyOptions}
         value={selectedSurveyId}
         onchange={handleSurveyChange}>
@@ -21,7 +21,7 @@
       </template>
       <template if:true={noData}>
         <p class="slds-text-color_weak slds-m-top_medium">
-          Brak pytań kontrolnych w tej ankiecie.
+          No control question in the survey.
         </p>
       </template>
     </div>
