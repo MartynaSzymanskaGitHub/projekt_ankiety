@@ -23,7 +23,7 @@ export default class LoginPage extends LightningElement {
           message: `Witaj`,
           variant: 'success'
         }));
-        window.location.href = '/lightning/n/Survey_Results';
+        window.location.href = '/lightning/n/SurveyResultsPage';
       })
       .catch(error => {
         this.dispatchEvent(new ShowToastEvent({

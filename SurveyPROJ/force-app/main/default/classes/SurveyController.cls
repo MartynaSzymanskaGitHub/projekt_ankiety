@@ -23,6 +23,68 @@ public with sharing class SurveyController {
     }
 
 
+@AuraEnabled(cacheable=true)
+public static List<RoleResponseCount> getGlobalSurveyResultsByRole() {
+    List<RoleResponseCount> result = new List<RoleResponseCount>();
+
+    AggregateResult[] grouped = [
+        SELECT User_Login__r.Role__c role, COUNT_DISTINCT(Survey__c) cnt
+        FROM Response_PROJ__c
+        WHERE User_Login__r.Role__c != null
+        GROUP BY User_Login__r.Role__c
+    ];
+
+    for (AggregateResult r : grouped) {
+        result.add(new RoleResponseCount(
+            (String)r.get('role'),
+            (Integer)r.get('cnt')
+        ));
+    }
+
+    return result;
+}
+
+
+public class RoleResponseCount {
+    @AuraEnabled public String role;
+    @AuraEnabled public Integer count;
+
+    public RoleResponseCount(String role, Integer count) {
+        this.role = role;
+        this.count = count;
+    }
+}
+
+
+@AuraEnabled(cacheable=true)
+public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month, Integer year) {
+    Date start = Date.newInstance(year, month, 1);
+    Date endDate = start.addMonths(1).addDays(-1);
+
+    AggregateResult[] results = [
+        SELECT Survey_PROJ__r.Title_c__c title, AVG(Rating__c) avgRating
+        FROM SurveyRating_PROJ__c
+        WHERE Survey_PROJ__r.End_Date__c >= :start
+          AND Survey_PROJ__r.End_Date__c <= :endDate
+        GROUP BY Survey_PROJ__r.Title_c__c
+        ORDER BY AVG(Rating__c) DESC
+        LIMIT 3
+    ];
+
+    List<SurveyAverageRating> topSurveys = new List<SurveyAverageRating>();
+    for (AggregateResult r : results) {
+        String t = (String) r.get('title');
+        Decimal avg = (Decimal) r.get('avgRating');
+        if (t != null && avg != null) {
+            topSurveys.add(new SurveyAverageRating(t, avg));
+        }
+    }
+
+    return topSurveys;
+}
+
+
+
     @AuraEnabled(cacheable=true)
     public static List<SurveyAverageRating> getTop3RatedSurveysDynamic() {
         AggregateResult[] results = [

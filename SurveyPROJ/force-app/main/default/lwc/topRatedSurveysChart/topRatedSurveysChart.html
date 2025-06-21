@@ -1,0 +1,12 @@
+<template>
+  <lightning-card title="Top 3 Ankiety wg Oceny">
+    <lightning-combobox
+      label="Wybierz miesiąc"
+      value={selectedMonth}
+      options={monthOptions}
+      onchange={handleMonthChange}>
+    </lightning-combobox>
+
+    <div class="slds-m-top_medium chart-container" lwc:dom="manual"></div>
+  </lightning-card>
+</template>

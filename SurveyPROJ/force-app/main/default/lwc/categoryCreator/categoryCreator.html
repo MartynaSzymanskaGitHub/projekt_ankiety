@@ -2,17 +2,17 @@
   <template if:true={isAuthorized}>
     <c-logout-button></c-logout-button>
 
-    <lightning-card title="Dodaj kategorię" icon-name="utility:add">
+    <lightning-card title="Dodaj oddział" icon-name="utility:add">
       <div class="slds-p-around_medium">
 
-        <lightning-input label="Nazwa kategorii"
+        <lightning-input label="Nazwa odziału"
                          value={categoryName}
                          onchange={handleNameChange}>
         </lightning-input>
 
         <lightning-dual-listbox
           name="allowedRoles"
-          label="Role, które mogą używać tej kategorii"
+          label="Role, które będa przypisane do działu"
           source-label="Dostępne role"
           selected-label="Wybrane role"
           options={roleOptions}
@@ -22,14 +22,14 @@
         </lightning-dual-listbox>
 
         <lightning-button variant="brand"
-                          label="Zapisz kategorię"
+                          label="Zapisz"
                           class="slds-m-top_medium"
                           onclick={handleSave}
                           disabled={disableSave}>
         </lightning-button>
 
         <template if:true={categories.length}>
-          <h3 class="slds-text-heading_small slds-m-top_large">Istniejące kategorie</h3>
+          <h3 class="slds-text-heading_small slds-m-top_large">Istniejące działy</h3>
 
           <div class="slds-scrollable_y" style="max-height:220px;">
             <table class="slds-table slds-table_cell-buffer slds-table_bordered">

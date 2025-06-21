@@ -1,0 +1,22 @@
+<template>
+  <lightning-card title="Wyniki Ankiety">
+    <lightning-combobox
+      label="Wybierz ankietę"
+      value={selectedSurveyId}
+      options={surveyOptions}
+      onchange={handleSurveyChange}>
+    </lightning-combobox>
+
+    <template if:true={questionOptions.length}>
+      <lightning-combobox
+        class="slds-m-top_medium"
+        label="Wybierz pytanie"
+        value={selectedQuestion}
+        options={questionOptions}
+        onchange={handleQuestionChange}>
+      </lightning-combobox>
+    </template>
+
+    <div class="slds-m-top_medium chart-container" lwc:dom="manual"></div>
+  </lightning-card>
+</template>
