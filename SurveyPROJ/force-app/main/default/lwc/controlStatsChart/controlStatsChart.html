@@ -9,16 +9,16 @@
         <template if:true={hasSurveys}>
           <lightning-combobox
             name="survey"
-            label="Wybierz ankietę"
+            label="Choose the survey"
             value={selectedSurveyId}
-            placeholder="Wybierz ankietę"
+            placeholder="Choose the survey"
             options={surveyOptions}
             onchange={handleSurveyChange}>
           </lightning-combobox>
         </template>
         <template if:true={isEmpty}>
           <p class="slds-text-color_weak">
-            Brak dostępnych ankiet do wyświetlenia statystyk.
+            No control data available.
           </p>
         </template>
       </div>
@@ -29,7 +29,7 @@
         </template>
         <template if:true={showNoDataMessage}>
           <p class="slds-text-color_weak slds-m-top_medium">
-            Brak danych kontrolnych do wyświetlenia.
+            No control data available.
           </p>
         </template>
       </div>

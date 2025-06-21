@@ -91,7 +91,7 @@ handleSurveyChange(event) {
       }
     })
     .catch(err => {
-      this.showToast('Błąd ładowania statystyk', err.body?.message || err.message, 'error');
+      this.showToast('Error loading statictics', err.body?.message || err.message, 'error');
     });
 }
 
@@ -107,9 +107,9 @@ handleSurveyChange(event) {
     this.chart = new window.Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Poprawne', 'Niepoprawne'],
+        labels: ['Correct', 'Incorrect'],
         datasets: [{
-          label: 'Liczba odpowiedzi',
+          label: 'Number of answers',
           data: [correctCount, incorrectCount],
           backgroundColor: ['#42A5F5', '#EF5350']
         }]
@@ -121,14 +121,14 @@ handleSurveyChange(event) {
           x: {
             title: {
               display: true,
-              text: 'Typ odpowiedzi'
+              text: 'Answer type'
             }
           },
           y: {
             beginAtZero: true,
             title: {
               display: true,
-              text: 'Ilość'
+              text: 'Quantity'
             },
             ticks: {
               precision: 0
