@@ -134,40 +134,35 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
         }
 
 
+        
 
 
     @AuraEnabled(cacheable=true)
-    public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
-        User_Login__c u = [
-            SELECT Role__c
-            FROM   User_Login__c
-            WHERE  Id = :userLoginId
-            LIMIT  1
-        ];
+public static List<Survey_PROJ__c> getSurveysForUser(Id userLoginId) {
+    List<User_Category_PROJ__c> userCategories = [
+        SELECT Category_PROJ__c
+        FROM User_Category_PROJ__c
+        WHERE User__c = :userLoginId
+    ];
 
-        List<User_Category_PROJ__c> links = [
-            SELECT Category_PROJ__c
-            FROM   User_Category_PROJ__c
-            WHERE  User__c = :userLoginId
-        ];
-        if (links.isEmpty()) {
-            throw new AuraHandledException('Brak przypisanych kategorii.');
-        }
-        Set<Id> catIds = new Set<Id>();
-        for (User_Category_PROJ__c l : links) {
-            catIds.add(l.Category_PROJ__c);
-        }
-
-        return [
-            SELECT Id, Title_c__c, End_Date__c,
-                   Category_PROJ__c, Category_PROJ__r.Name
-            FROM   Survey_PROJ__c
-            WHERE  Category_PROJ__c IN :catIds
-              AND  End_Date__c      >= TODAY
-              AND  Category_PROJ__r.Allowed_For__c LIKE :('%' + u.Role__c + '%')
-            ORDER  BY End_Date__c ASC
-        ];
+    if (userCategories.isEmpty()) {
+        return new List<Survey_PROJ__c>();
     }
+
+    Set<Id> categoryIds = new Set<Id>();
+    for (User_Category_PROJ__c uc : userCategories) {
+        categoryIds.add(uc.Category_PROJ__c);
+    }
+
+    return [
+        SELECT Id, Title_c__c, End_Date__c, Category_PROJ__r.Name
+        FROM Survey_PROJ__c
+        WHERE Category_PROJ__c IN :categoryIds
+          AND End_Date__c >= TODAY
+        ORDER BY End_Date__c ASC
+    ];
+}
+
 
 
     @AuraEnabled(cacheable=true)
@@ -420,5 +415,68 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
         ];
         return (Decimal) result.get('avgRating');
     }
+
+
+
+public class DepartmentSurveyCompletion {
+    @AuraEnabled public String departmentName;
+    @AuraEnabled public Integer completedUsers;
+    @AuraEnabled public Integer notCompletedUsers;
+
+    public DepartmentSurveyCompletion(String departmentName,
+                                      Integer completedUsers,
+                                      Integer notCompletedUsers) {
+        this.departmentName    = departmentName;
+        this.completedUsers    = completedUsers;
+        this.notCompletedUsers = notCompletedUsers;
+    }
+}
+
+@AuraEnabled(cacheable=true)
+public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(Id surveyId) {
+    // 1) Pobierz kategorię
+    Survey_PROJ__c survey = [
+        SELECT Category_PROJ__c
+        FROM Survey_PROJ__c
+        WHERE Id = :surveyId
+        LIMIT 1
+    ];
+
+    // 2) Pobierz wszystkich użytkowników w tej kategorii
+    List<User_Category_PROJ__c> allUsers = [
+        SELECT User__c
+        FROM User_Category_PROJ__c
+        WHERE Category_PROJ__c = :survey.Category_PROJ__c
+    ];
+    Set<Id> allUserIds = new Set<Id>();
+    for (User_Category_PROJ__c uc : allUsers) {
+        allUserIds.add(uc.User__c);
+    }
+
+    // 3) Policz, ilu z nich już wypełniło ankietę
+    AggregateResult[] completedAgg = [
+        SELECT COUNT_DISTINCT(User_Login__c) userCount
+        FROM Response_PROJ__c
+        WHERE Question_PROJ__r.Survey__c = :surveyId
+          AND User_Login__c IN :allUserIds
+    ];
+    Integer completedUsers = completedAgg.isEmpty()
+        ? 0 
+        : (Integer) completedAgg[0].get('userCount');
+    Integer notCompletedUsers = allUserIds.size() - completedUsers;
+
+    // 4) Nazwa działu
+    String departmentName = [
+        SELECT Name
+        FROM Category_PROJ__c
+        WHERE Id = :survey.Category_PROJ__c
+    ].Name;
+
+    return new List<DepartmentSurveyCompletion>{
+        new DepartmentSurveyCompletion(departmentName, completedUsers, notCompletedUsers)
+    };
+}
+
+
 
 }

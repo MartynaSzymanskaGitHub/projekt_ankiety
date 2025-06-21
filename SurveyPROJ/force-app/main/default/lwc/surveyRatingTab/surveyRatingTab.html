@@ -5,21 +5,21 @@
         <c-logout-button></c-logout-button>
       </div>
 
-      <lightning-card title="Oceń wypełnioną ankietę" icon-name="utility:feedback" class="rating-card">    
+      <lightning-card title="Rate Completed Survey" icon-name="utility:feedback" class="rating-card">    
         <div class="slds-p-around_medium">
           <template if:true={surveyOptions.length}>
             <lightning-combobox
               name="survey"
-              label="Wybierz ankietę"
+              label="Select a Survey"
               value={selectedSurveyId}
-              placeholder="Wybierz ankietę"
+              placeholder="Select a Survey"
               options={surveyOptions}
               onchange={handleSurveyChange}>
             </lightning-combobox>
 
             <lightning-input
               type="number"
-              label="Twoja ocena (1–5)"
+              label="Your Rating (1–5)"
               value={rating}
               min="1"
               max="5"
@@ -29,7 +29,7 @@
             </lightning-input>
 
             <lightning-button
-              label="Wyślij ocenę"
+              label="Submit Rating"
               variant="brand"
               class="slds-m-top_medium"
               onclick={handleSubmitRating}>
@@ -37,7 +37,7 @@
           </template>
 
           <template if:true={isEmpty}>
-            <p>Brak wypełnionych ankiet do oceny.</p>
+            <p>No completed surveys available to rate.</p>
           </template>
         </div>
       </lightning-card>

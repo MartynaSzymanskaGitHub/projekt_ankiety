@@ -1,12 +1,23 @@
 import { LightningElement, api } from 'lwc';
 import ChartJs from '@salesforce/resourceUrl/chartJs';
 import { loadScript } from 'lightning/platformResourceLoader';
-import getGlobalSurveyResultsByRole from '@salesforce/apex/SurveyController.getGlobalSurveyResultsByRole';
+import getAllSurveys from '@salesforce/apex/SurveyController.getAllSurveys';
+import getSurveyCompletionByDepartment from '@salesforce/apex/SurveyController.getSurveyCompletionByDepartment';
 
 export default class SurveyRoleChart extends LightningElement {
-    @api chartData; // <- możesz zostawić, żeby nie wywalało błędu
+    @api selectedSurveyId;
+    @api chartData;
     chart;
+    surveys = [];
+    surveyOptions = [];
     chartInitialized = false;
+
+    connectedCallback() {
+        getAllSurveys().then(data => {
+            this.surveys = data;
+            this.surveyOptions = data.map(s => ({ label: s.Title_c__c, value: s.Id }));
+        });
+    }
 
     renderedCallback() {
         if (this.chartInitialized) return;
@@ -17,33 +28,39 @@ export default class SurveyRoleChart extends LightningElement {
             .catch(error => console.error('Chart.js failed to load', error));
     }
 
-    initChart() {
-        getGlobalSurveyResultsByRole()
-            .then(data => {
-                if (!data || data.length === 0) return;
+    handleSurveyChange(e) {
+        this.selectedSurveyId = e.detail.value;
+        this.updateChart();
+    }
 
-                const ctx = this.template.querySelector('canvas').getContext('2d');
-                this.chart = new window.Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.map(e => e.role),
-                        datasets: [{
-                            label: 'Wypełnione ankiety wg roli',
-                            data: data.map(e => e.count),
-                            backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: true }
-                        }
-                    }
-                });
+    initChart() {
+        const ctx = this.template.querySelector('canvas').getContext('2d');
+        this.chart = new window.Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: ['#42A5F5', '#66BB6A']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    updateChart() {
+        if (!this.selectedSurveyId) return;
+
+        getSurveyCompletionByDepartment({ surveyId: this.selectedSurveyId })
+            .then(data => {
+                const { completedUsers, notCompletedUsers } = data[0];
+                this.chart.data.labels = ['Filled', 'Not filled'];
+                this.chart.data.datasets[0].data = [completedUsers, notCompletedUsers];
+                this.chart.update();
             })
-            .catch(error => {
-                console.error('Błąd pobierania danych z Apex:', error);
-            });
+            .catch(error => console.error(error));
     }
 }

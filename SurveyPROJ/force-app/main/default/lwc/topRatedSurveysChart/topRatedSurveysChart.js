@@ -53,17 +53,17 @@ renderChart(data) {
   const values = data.map(item => item.avgRating);
 
   this.chart = new window.Chart(ctx, {
-    type: 'bar',  // wykres słupkowy
+    type: 'bar', 
     data: {
       labels: labels,
       datasets: [{
-        label: 'Średnia ocena ankiety',
+        label: 'Average survey rate',
         data: values,
         backgroundColor: 'rgba(54, 162, 235, 0.7)',
       }]
     },
     options: {
-      indexAxis: 'y', // <-- to ustawia wykres poziomy
+      indexAxis: 'y', 
       responsive: true,
       plugins: {
         tooltip: { enabled: true },
@@ -74,13 +74,13 @@ renderChart(data) {
           beginAtZero: true,
           title: {
             display: true,
-            text: 'Średnia ocena'
+            text: 'Average rating'
           }
         },
         y: {
           title: {
             display: true,
-            text: 'Ankieta'
+            text: 'Survey'
           }
         }
       }

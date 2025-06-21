@@ -1,7 +1,15 @@
 <template>
-  <lightning-card title="Wyniki wg roli (globalne)">
-    <div class="slds-p-around_medium" style="height:300px;">
-      <canvas></canvas>
-    </div>
-  </lightning-card>
+    <lightning-card title="Survey Completion by Department">
+        <div class="slds-p-around_medium">
+            <lightning-combobox
+                label="Select a Survey"
+                options={surveyOptions}
+                value={selectedSurveyId}
+                onchange={handleSurveyChange}>
+            </lightning-combobox>
+        </div>
+        <div class="slds-p-around_medium" style="height:300px;">
+            <canvas lwc:dom="manual"></canvas>
+        </div>
+    </lightning-card>
 </template>

@@ -1,7 +1,7 @@
 <template>
-  <lightning-card title="Wyniki Ankiety">
+  <lightning-card title="Survey Results">
     <lightning-combobox
-      label="Wybierz ankietę"
+      label="Select a Survey"
       value={selectedSurveyId}
       options={surveyOptions}
       onchange={handleSurveyChange}>
@@ -10,7 +10,7 @@
     <template if:true={questionOptions.length}>
       <lightning-combobox
         class="slds-m-top_medium"
-        label="Wybierz pytanie"
+        label="Select a Question"
         value={selectedQuestion}
         options={questionOptions}
         onchange={handleQuestionChange}>

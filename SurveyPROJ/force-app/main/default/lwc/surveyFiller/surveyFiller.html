@@ -2,18 +2,17 @@
   <template if:true={isAuthorized}>
     <c-logout-button></c-logout-button>
 
-    <lightning-card title="Fill Survey" icon-name="utility:poll">
+    <lightning-card title="Fill Out Survey" icon-name="utility:poll">
       <div class="slds-p-around_medium">
         <lightning-button-icon
           icon-name={sortIcon}
-          alternative-text="Zmień sortowanie"
+          alternative-text="Toggle sorting"
           onclick={toggleSortDirection}
           class="slds-m-bottom_small">
         </lightning-button-icon>
 
-
         <lightning-combobox
-          label="Kategoria"
+          label="Category"
           value={selectedCategory}
           options={categoryOptions}
           onchange={handleCategoryChange}
@@ -21,13 +20,13 @@
         </lightning-combobox>
 
         <template if:true={surveys}>
-          <p class="slds-text-heading_small">Wybierz ankietę:</p>
+          <p class="slds-text-heading_small">Select a survey:</p>
 
           <template for:each={filteredSurveys} for:item="s">
             <div key={s.Id} class="slds-box slds-m-around_small">
               <p><strong>{s.Title_c__c}</strong></p>
-              <p>Kategoria: {s.Category_PROJ__r.Name}</p>
-              <p>Zakończenie:
+              <p>Category: {s.Category_PROJ__r.Name}</p>
+              <p>End date:
                 <lightning-formatted-date-time
                   value={s.End_Date__c}
                   year="numeric"
@@ -41,7 +40,7 @@
               <template if:false={s.isExpired}>
                 <template if:false={s.alreadySubmitted}>
                   <lightning-button
-                    label="Wypełnij"
+                    label="Fill in"
                     data-id={s.Id}
                     onclick={handleSurveyClick}
                     class="slds-m-top_x-small">
@@ -49,14 +48,14 @@
                 </template>
                 <template if:true={s.alreadySubmitted}>
                   <p class="slds-text-color_success slds-m-top_x-small">
-                    Już wypełniono
+                    Already submitted
                   </p>
                 </template>
               </template>
 
               <template if:true={s.isExpired}>
                 <p class="slds-text-color_error slds-m-top_x-small">
-                  Ankieta zakończona
+                  Survey closed
                 </p>
               </template>
             </div>
@@ -69,9 +68,9 @@
       <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
         <div class="slds-modal__container">
           <header class="slds-modal__header">
-            <h2 class="slds-text-heading_medium">Wypełnij ankietę</h2>
+            <h2 class="slds-text-heading_medium">Fill Out Survey</h2>
             <button class="slds-button slds-modal__close" onclick={closeModal}>
-              <lightning-icon icon-name="utility:close" alternative-text="Zamknij" size="small"></lightning-icon>
+              <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
             </button>
           </header>
 
@@ -79,7 +78,7 @@
             <template if:true={questions}>
               <template if:true={isSurveyExpired}>
                 <p class="slds-text-color_error slds-m-top_medium">
-                  Ta ankieta jest już zakończona. Nie można jej wypełnić.
+                  This survey has ended. It can no longer be filled out.
                 </p>
               </template>
 
@@ -114,8 +113,8 @@
           </div>
 
           <footer class="slds-modal__footer">
-            <lightning-button label="Anuluj" onclick={closeModal}></lightning-button>
-            <lightning-button variant="brand" label="Wyślij odpowiedzi" onclick={submitResponses}></lightning-button>
+            <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
+            <lightning-button variant="brand" label="Submit Answers" onclick={submitResponses}></lightning-button>
           </footer>
         </div>
       </section>

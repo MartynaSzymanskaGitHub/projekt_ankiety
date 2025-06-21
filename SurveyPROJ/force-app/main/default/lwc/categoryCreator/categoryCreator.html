@@ -5,19 +5,19 @@
     <lightning-card title="Dodaj oddział" icon-name="utility:add">
       <div class="slds-p-around_medium">
 
-        <lightning-input label="Nazwa odziału"
+        <lightning-input label="Nazwa oddziału"
                          value={categoryName}
                          onchange={handleNameChange}>
         </lightning-input>
 
         <lightning-dual-listbox
-          name="allowedRoles"
-          label="Role, które będa przypisane do działu"
-          source-label="Dostępne role"
-          selected-label="Wybrane role"
-          options={roleOptions}
-          value={selectedRoles}
-          onchange={handleRoleChange}
+          name="selectedUsers"
+          label="Użytkownicy przypisani do oddziału"
+          source-label="Dostępni użytkownicy"
+          selected-label="Wybrani użytkownicy"
+          options={userOptions}
+          value={selectedUsers}
+          onchange={handleUserChange}
           class="slds-m-top_medium">
         </lightning-dual-listbox>
 
@@ -29,22 +29,20 @@
         </lightning-button>
 
         <template if:true={categories.length}>
-          <h3 class="slds-text-heading_small slds-m-top_large">Istniejące działy</h3>
+          <h3 class="slds-text-heading_small slds-m-top_large">Istniejące oddziały</h3>
 
           <div class="slds-scrollable_y" style="max-height:220px;">
             <table class="slds-table slds-table_cell-buffer slds-table_bordered">
               <thead>
                 <tr>
-                  <th style="width:40%">Nazwa</th>
-                  <th style="width:45%">Dozwolone role</th>
-                  <th style="width:15%"></th>
+                  <th>Nazwa</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 <template for:each={categories} for:item="c">
                   <tr key={c.Id}>
                     <td>{c.Name}</td>
-                    <td>{c.Allowed_For__c}</td>
                     <td class="slds-text-align_right">
                       <lightning-button-icon
                           icon-name="utility:delete"
