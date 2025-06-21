@@ -4,9 +4,9 @@
       <lightning-combobox
         name="survey"
         label="Wybierz ankietę"
-        value={selectedSurveyId}
-        options={surveyOptions}
         placeholder="– wybierz –"
+        options={surveyOptions}
+        value={selectedSurveyId}
         onchange={handleSurveyChange}>
       </lightning-combobox>
 
@@ -19,7 +19,6 @@
           hide-checkbox-column>
         </lightning-datatable>
       </template>
-
       <template if:true={noData}>
         <p class="slds-text-color_weak slds-m-top_medium">
           Brak pytań kontrolnych w tej ankiecie.

@@ -480,16 +480,17 @@ public static List<DepartmentSurveyCompletion> getSurveyCompletionByDepartment(I
 
 @AuraEnabled(cacheable=true)
 public static List<Question_PROJ__c> getControlQuestions(Id surveyId) {
-  return [
-    SELECT Id,
-           Question_Text__c,
-           Correct_Choice__c
-    FROM Question_PROJ__c
-    WHERE Survey__c      = :surveyId
-      AND Is_Control__c  = true        // <-- poprawna nazwa pola
-    ORDER BY Question_Text__c
-  ];
+    return [
+        SELECT Id,
+               Question_Text__c,
+               Correct_Choice__c
+        FROM Question_PROJ__c
+        WHERE Survey__c        = :surveyId
+          AND Is_Control_c__c = true   
+          ORDER BY Name   
+    ];
 }
+
 
 
 }
