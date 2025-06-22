@@ -54,22 +54,30 @@ export default class SurveyManager extends LightningElement {
     this.applyFilterAndSort();
   }
 
-  applyFilterAndSort() {
-    // Filtrowanie
-    let filtered = this.allSurveys.filter(s =>
-      s.Title_c__c?.toLowerCase().includes(this.filterTitle)
-    );
 
-    // Sortowanie
+  applyFilterAndSort() {
+    const filtered = [];
+
+    for (let i = 0; i < this.allSurveys.length; i++) {
+      const s = this.allSurveys[i];
+      const title = (s.Title_c__c || '').toLowerCase();
+      if (title.includes(this.filterTitle)) {
+        filtered.push(s);
+      }
+    }
+
     filtered.sort((a, b) => {
-      const valA = a[this.sortBy] || '';
-      const valB = b[this.sortBy] || '';
-      let cmp = valA > valB ? 1 : valA < valB ? -1 : 0;
-      return this.sortDirection === 'asc' ? cmp : -cmp;
+      const valA = (a[this.sortBy] || '').toLowerCase();
+      const valB = (b[this.sortBy] || '').toLowerCase();
+
+      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
     });
 
     this.surveys = filtered;
   }
+
 
   handleRowAction(event) {
     const { name } = event.detail.action;
