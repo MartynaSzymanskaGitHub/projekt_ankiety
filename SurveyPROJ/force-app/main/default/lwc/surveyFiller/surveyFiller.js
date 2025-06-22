@@ -48,31 +48,40 @@ export default class SurveyFiller extends LightningElement {
   }
 
 async loadSurveys() {
-    try {
-        const data = await getSurveysForUser({ userLoginId: this.userLoginId });
-        const now = new Date();
+  try {
+    const data = await getSurveysForUser({ userLoginId: this.userLoginId });
+    const now = new Date();
+    const surveys = [];
 
-        const submitted = await Promise.all(
-            data.map(s => checkUserSubmitted({ surveyId: s.Id, userLoginId: this.userLoginId }))
-        );
+    for (let s of data) {
+      const alreadySubmitted = await checkUserSubmitted({
+        surveyId: s.Id,
+        userLoginId: this.userLoginId
+      });
 
-        this.surveys = data.map((s, i) => ({
-            ...s,
-            isExpired: s.End_Date__c ? new Date(s.End_Date__c) < now : false,
-            alreadySubmitted: submitted[i]
-        }));
-
-        const catSet = new Set();
-        this.surveys.forEach(s => {
-            if (s.Category_PROJ__r?.Name) {
-                catSet.add(s.Category_PROJ__r.Name);
-            }
-        });
-        this.categories = Array.from(catSet).sort();
-    } catch (err) {
-        this.toast('Error', err.body?.message || err.message, 'error');
+      surveys.push({
+        ...s,
+        isExpired: s.End_Date__c ? new Date(s.End_Date__c) < now : false,
+        alreadySubmitted
+      });
     }
+
+    this.surveys = surveys;
+
+    const catSet = new Set();
+    for (let s of surveys) {
+      if (s.Category_PROJ__r?.Name) {
+        catSet.add(s.Category_PROJ__r.Name);
+      }
+    }
+    this.categories = Array.from(catSet).sort();
+
+  } catch (err) {
+    this.toast('Error', err.body?.message || err.message, 'error');
+  }
 }
+
+
 
 
   toggleSortDirection() {
