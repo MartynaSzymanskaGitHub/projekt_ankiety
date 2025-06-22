@@ -18,9 +18,36 @@ export default class CategoryCreator extends LightningElement {
   @track searchTerm = '';
 
   connectedCallback() {
+     this.verifyAccess();
     this.refreshCategories();
     this.loadUsers();
   }
+  
+  verifyAccess() {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      this.logoutAndRedirect();
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.Role__c !== 'Admin') {
+        alert('You do not have permission to access this page. You have been logged out.');
+        this.logoutAndRedirect();
+      }
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+      alert('An error occurred. You have been logged out.');
+      this.logoutAndRedirect();
+    }
+  }
+
+  logoutAndRedirect() {
+    localStorage.removeItem('user');
+    window.location.href = '/lightning/n/Login';
+  }
+
 
   get cardTitle() {
     return this.categoryId ? 'Edytuj oddział' : 'Dodaj oddział';

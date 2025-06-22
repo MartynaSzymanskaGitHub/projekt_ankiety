@@ -1,8 +1,9 @@
 public with sharing class LoginController {
+    
     @AuraEnabled(cacheable=false)
     public static User_Login__c login(String username, String password) {
         List<User_Login__c> users = [
-            SELECT Id, Name, Email__c, Password__c, Role__c
+            SELECT Id, Name, Email__c, Password__c, Role__c, Is_Active__c
             FROM User_Login__c
             WHERE Name = :username
             LIMIT 1
@@ -13,6 +14,11 @@ public with sharing class LoginController {
         }
 
         User_Login__c user = users[0];
+
+        if (!user.Is_Active__c) {
+            throw new AuraHandledException('Konto jest nieaktywne. Skontaktuj się z administratorem.');
+        }
+
         if (user.Password__c != password) {
             throw new AuraHandledException('Niepoprawne hasło.');
         }
@@ -32,7 +38,9 @@ public with sharing class LoginController {
             throw new AuraHandledException('Password must be at least 8 characters long and contain at least one number and one special character.');
         }
 
-        List<User_Login__c> existing = [SELECT Id FROM User_Login__c WHERE Email__c = :email LIMIT 1];
+        List<User_Login__c> existing = [
+            SELECT Id FROM User_Login__c WHERE Email__c = :email LIMIT 1
+        ];
         if (!existing.isEmpty()) {
             throw new AuraHandledException('A user with this email address already exists.');
         }
@@ -41,7 +49,8 @@ public with sharing class LoginController {
             Name = name,
             Email__c = email,
             Password__c = password,
-            Role__c = 'User'
+            Role__c = 'User',
+            Is_Active__c = true  
         );
         insert newUser;
 

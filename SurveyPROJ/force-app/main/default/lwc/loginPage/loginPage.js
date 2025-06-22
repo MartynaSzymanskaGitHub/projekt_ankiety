@@ -17,6 +17,7 @@ export default class LoginPage extends LightningElement {
   handleLogin() {
     login({ username: this.username, password: this.password })
       .then(user => {
+        delete user.Password__c;
         localStorage.setItem('user', JSON.stringify(user));
         this.dispatchEvent(new ShowToastEvent({
           title: 'Zalogowano',

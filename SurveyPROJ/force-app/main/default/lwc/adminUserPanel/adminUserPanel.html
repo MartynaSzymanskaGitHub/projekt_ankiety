@@ -1,0 +1,25 @@
+<template>
+  <lightning-card title="Panel administratora - Konta użytkowników" icon-name="standard:contact">
+    <div class="slds-p-around_medium">
+      <template if:true={users.length}>
+        <lightning-datatable
+          key-field="Id"
+          data={users}
+          columns={columns}
+          hide-checkbox-column
+          onsave={handleSave}
+          draft-values={draftValues}
+          class="slds-m-top_medium">
+        </lightning-datatable>
+      </template>
+
+      <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+      </template>
+
+      <template if:true={error}>
+        <p class="slds-text-color_error">Błąd: {error}</p>
+      </template>
+    </div>
+  </lightning-card>
+</template>
