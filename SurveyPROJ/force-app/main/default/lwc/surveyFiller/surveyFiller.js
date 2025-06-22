@@ -112,11 +112,28 @@ async handleSurveyClick(e) {
     this.isSurveyExpired = endDate < new Date();
     this.selectedSurveyEndDate = endDate;
 
-    this.questions = data.map(q => ({
-      ...q,
-      options: (q.Choices__c || '').split(';').filter(c => c).map(c => ({ label: c, value: c })),
-      selected: q.Is_MultiSelect__c ? [] : ''
-    }));
+this.questions = data.map(q => {
+  // Rozdziel tekst odpowiedzi na tablicę (np. "Tak;Nie" => ["Tak", "Nie"])
+  let choicesText = q.Choices__c || '';
+  let parts = choicesText.split(';');
+
+  // Zamień każdy tekst na obiekt { label: ..., value: ... }
+  let options = parts.map(p => {
+    return { label: p, value: p };
+  });
+
+  // Jeśli pytanie wielokrotnego wyboru => zaznaczone odpowiedzi to []
+  // Inaczej — pusty string ''
+  let selected = q.Is_MultiSelect__c ? [] : '';
+
+  // Zwróć nowe pytanie z dodatkowymi polami
+  return {
+    ...q,
+    options: options,
+    selected: selected
+  };
+});
+
 
     this.showModal = true;
   } catch (err) {
