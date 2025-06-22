@@ -68,12 +68,12 @@ updateChart() {
       .then(data => {
         const { completedUsers, notCompletedUsers } = data[0];
 
-        this.chart.data.labels = ['Filled', 'Not filled'];
+        this.chart.data.labels = ['Not filled', 'Filled'];
         this.chart.data.datasets[0].data = [notCompletedUsers, completedUsers];
 
-        this.chart.data.datasets[0].backgroundColor = [
-          '#4CAF50', 
-          '#F44336' 
+        this.chart.data.datasets[0].backgroundColor = [ 
+          '#F44336',
+          '#4CAF50'
         ];
 
         this.chart.data.datasets[0].hoverBackgroundColor = [
