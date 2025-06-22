@@ -98,13 +98,13 @@ async handleSurveyClick(e) {
     const data = await getQuestions({ surveyId: this.selectedSurveyId });
 
     if (!data.length) {
-      this.toast('Error', 'Brakuje pytań w ankiecie.', 'error');
+      this.toast('Error', 'Add at least one question.', 'error');
       return;
     }
 
     const end = data[0].Survey__r?.End_Date__c;
     if (!end) {
-      this.toast('Error', 'Brakuje daty zakończenia ankiety.', 'error');
+      this.toast('Error', 'Add end date.', 'error');
       return;
     }
 
@@ -112,32 +112,26 @@ async handleSurveyClick(e) {
     this.isSurveyExpired = endDate < new Date();
     this.selectedSurveyEndDate = endDate;
 
-this.questions = data.map(q => {
-  // Rozdziel tekst odpowiedzi na tablicę (np. "Tak;Nie" => ["Tak", "Nie"])
-  let choicesText = q.Choices__c || '';
-  let parts = choicesText.split(';');
+    this.questions = data.map(q => {
+      let choicesText = q.Choices__c || '';
+      let parts = choicesText.split(';');
 
-  // Zamień każdy tekst na obiekt { label: ..., value: ... }
-  let options = parts.map(p => {
-    return { label: p, value: p };
-  });
+      let options = parts.map(p => {
+        return { label: p, value: p };
+      });
+      let selected = q.Is_MultiSelect__c ? [] : '';
 
-  // Jeśli pytanie wielokrotnego wyboru => zaznaczone odpowiedzi to []
-  // Inaczej — pusty string ''
-  let selected = q.Is_MultiSelect__c ? [] : '';
-
-  // Zwróć nowe pytanie z dodatkowymi polami
-  return {
-    ...q,
-    options: options,
-    selected: selected
-  };
-});
+      return {
+        ...q,
+        options: options,
+        selected: selected
+      };
+    });
 
 
     this.showModal = true;
   } catch (err) {
-    this.toast('Error', err.body?.message || err.message || 'Nieznany błąd', 'error');
+    this.toast('Error', err.body?.message || err.message || 'Error', 'error');
   }
 }
 
