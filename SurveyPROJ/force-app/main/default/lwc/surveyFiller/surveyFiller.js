@@ -92,44 +92,43 @@ async loadSurveys() {
     this.selectedCategory = e.detail.value;
   }
 
-  async handleSurveyClick(e) {
-    this.selectedSurveyId = e.target.dataset.id;
-    this.questions = null;
-    this.isSurveyExpired = false;
-    this.selectedSurveyEndDate = null;
+async handleSurveyClick(e) {
+  this.selectedSurveyId = e.target.dataset.id;
+  this.questions = null;
+  this.showModal = false;
+  this.isSurveyExpired = false;
+  this.selectedSurveyEndDate = null;
 
-    try {
-      const data = await getQuestions({ surveyId: this.selectedSurveyId });
+  try {
+    const data = await getQuestions({ surveyId: this.selectedSurveyId });
 
-      if (!data.length) {
-        this.toast('Error', 'Add at least one question to the survey.', 'error');
-        return;
-      }
-
-      const surveyEndDateStr = data[0].Survey__r?.End_Date__c;
-      if (!surveyEndDateStr) {
-        this.toast('Error', 'Add end date to survey.', 'error');
-        return;
-      }
-
-      const surveyEndDate = new Date(surveyEndDateStr);
-      const now = new Date();
-      this.selectedSurveyEndDate = surveyEndDate;
-      this.isSurveyExpired = surveyEndDate < now;
-
-      this.questions = data.map(q => ({
-        ...q,
-        options: q.Choices__c
-          ? q.Choices__c.split(';').map(c => ({ label: c, value: c }))
-          : [],
-        selected: q.Is_MultiSelect__c ? [] : ''
-      }));
-
-      this.showModal = true;
-    } catch (err) {
-      this.toast('Error', err.body?.message || err, 'error');
+    if (!data?.length) {
+      return this.toast('Error', 'Add at least one question to the survey.', 'error');
     }
+
+    const endDate = new Date(data[0].Survey__r?.End_Date__c);
+    if (isNaN(endDate)) {
+      return this.toast('Error', 'Add end date to survey.', 'error');
+    }
+
+    this.selectedSurveyEndDate = endDate;
+    this.isSurveyExpired = endDate < new Date();
+
+    this.questions = data.map(q => ({
+      ...q,
+      options: (q.Choices__c || '')
+        .split(';')
+        .filter(Boolean)
+        .map(c => ({ label: c, value: c })),
+      selected: q.Is_MultiSelect__c ? [] : ''
+    }));
+
+    this.showModal = true;
+  } catch (err) {
+    this.toast('Error', err.body?.message || err.message || err, 'error');
   }
+}
+
 
   closeModal() {
     this.showModal = false;
