@@ -82,8 +82,6 @@ async loadSurveys() {
 }
 
 
-
-
   toggleSortDirection() {
     this.isAscending = !this.isAscending;
   }
@@ -92,42 +90,40 @@ async loadSurveys() {
     this.selectedCategory = e.detail.value;
   }
 
+
 async handleSurveyClick(e) {
   this.selectedSurveyId = e.target.dataset.id;
-  this.questions = null;
-  this.showModal = false;
-  this.isSurveyExpired = false;
-  this.selectedSurveyEndDate = null;
 
   try {
     const data = await getQuestions({ surveyId: this.selectedSurveyId });
 
-    if (!data?.length) {
-      return this.toast('Error', 'Add at least one question to the survey.', 'error');
+    if (!data.length) {
+      this.toast('Error', 'Brakuje pytań w ankiecie.', 'error');
+      return;
     }
 
-    const endDate = new Date(data[0].Survey__r?.End_Date__c);
-    if (isNaN(endDate)) {
-      return this.toast('Error', 'Add end date to survey.', 'error');
+    const end = data[0].Survey__r?.End_Date__c;
+    if (!end) {
+      this.toast('Error', 'Brakuje daty zakończenia ankiety.', 'error');
+      return;
     }
 
-    this.selectedSurveyEndDate = endDate;
+    const endDate = new Date(end);
     this.isSurveyExpired = endDate < new Date();
+    this.selectedSurveyEndDate = endDate;
 
     this.questions = data.map(q => ({
       ...q,
-      options: (q.Choices__c || '')
-        .split(';')
-        .filter(Boolean)
-        .map(c => ({ label: c, value: c })),
+      options: (q.Choices__c || '').split(';').filter(c => c).map(c => ({ label: c, value: c })),
       selected: q.Is_MultiSelect__c ? [] : ''
     }));
 
     this.showModal = true;
   } catch (err) {
-    this.toast('Error', err.body?.message || err.message || err, 'error');
+    this.toast('Error', err.body?.message || err.message || 'Nieznany błąd', 'error');
   }
 }
+
 
 
   closeModal() {
