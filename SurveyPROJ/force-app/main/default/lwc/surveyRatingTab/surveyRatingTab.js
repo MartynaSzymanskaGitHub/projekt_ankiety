@@ -3,7 +3,7 @@ import getFilledSurveys from '@salesforce/apex/SurveyController.getFilledSurveys
 import submitSurveyRating from '@salesforce/apex/SurveyController.submitSurveyRating';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-const ALLOWED_ROLES = ['User', 'Worker'];
+const ALLOWED_ROLES = ['User'];
 
 export default class SurveyRatingTab extends LightningElement {
   @track surveyOptions = [];
