@@ -74,7 +74,7 @@ export default class SurveyResultsChart extends LightningElement {
         plugins: {
           tooltip: {
             callbacks: {
-              label: (ctx) => `${ctx.label}: ${ctx.raw} osób`
+              label: (ctx) => `${ctx.label}: ${ctx.raw} people`
             }
           },
           legend: { position: 'bottom' }
