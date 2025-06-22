@@ -19,13 +19,13 @@ public with sharing class SampleUserSeeder {
                 Name = 'user2',
                 Password__c = 'user456',
                 Role__c = 'User',
-                Email__c = 'kamilwinczewski52@gmail.com'
+                Email__c = 'kamilwinczewski11@gmail.com'
             ),
             new User_Login__c(
                 Name = 'worker1',
                 Password__c = 'worker123',
                 Role__c = 'User',
-                Email__c = 'martynaszy02@gmail.com'
+                Email__c = 'kamilwinczewski52@gmail.com'
             )
         };
         insert users;
