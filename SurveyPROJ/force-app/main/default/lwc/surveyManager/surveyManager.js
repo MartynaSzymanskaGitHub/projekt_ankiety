@@ -5,13 +5,17 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 
 export default class SurveyManager extends LightningElement {
-  @track surveys;
+  @track allSurveys = [];
+  @track surveys = [];
+  @track filterTitle = '';
+  @track sortBy = 'Title_c__c';
+  @track sortDirection = 'asc';
   wiredSurveys;
   isAuthorized = false;
 
   columns = [
-    { label: 'Title', fieldName: 'Title_c__c' },
-    { label: 'Description', fieldName: 'Description__c' },
+    { label: 'Title', fieldName: 'Title_c__c', sortable: true },
+    { label: 'Description', fieldName: 'Description__c', sortable: true },
     {
       type: 'action',
       typeAttributes: {
@@ -22,24 +26,49 @@ export default class SurveyManager extends LightningElement {
 
   connectedCallback() {
     const user = JSON.parse(localStorage.getItem('user'));
-
-    if (!user) {
-      window.location.href = '/lightning/n/Login';
-    } 
-    
-    if (user.Role__c !== 'Admin') {
-      alert('Unauthorized role. Sending to loading page...');
+    if (!user || user.Role__c !== 'Admin') {
       localStorage.removeItem('user');
-      window.location.href = '/lightning/n/Login'; 
-    }
+      window.location.href = '/lightning/n/Login';
+    } else {
       this.isAuthorized = true;
-    
+    }
   }
 
   @wire(getAllSurveys)
   wiredResult(result) {
     this.wiredSurveys = result;
-    if (result.data) this.surveys = result.data;
+    if (result.data) {
+      this.allSurveys = result.data;
+      this.applyFilterAndSort();
+    }
+  }
+
+  handleFilterChange(event) {
+    this.filterTitle = event.target.value.toLowerCase();
+    this.applyFilterAndSort();
+  }
+
+  handleSort(event) {
+    this.sortBy = event.detail.fieldName;
+    this.sortDirection = event.detail.sortDirection;
+    this.applyFilterAndSort();
+  }
+
+  applyFilterAndSort() {
+    // Filtrowanie
+    let filtered = this.allSurveys.filter(s =>
+      s.Title_c__c?.toLowerCase().includes(this.filterTitle)
+    );
+
+    // Sortowanie
+    filtered.sort((a, b) => {
+      const valA = a[this.sortBy] || '';
+      const valB = b[this.sortBy] || '';
+      let cmp = valA > valB ? 1 : valA < valB ? -1 : 0;
+      return this.sortDirection === 'asc' ? cmp : -cmp;
+    });
+
+    this.surveys = filtered;
   }
 
   handleRowAction(event) {
@@ -50,7 +79,10 @@ export default class SurveyManager extends LightningElement {
       deleteSurvey({ surveyId })
         .then(() => {
           this.toast('Success', 'Survey deleted', 'success');
-          refreshApex(this.wiredSurveys);
+          return refreshApex(this.wiredSurveys);
+        })
+        .then(() => {
+          this.applyFilterAndSort();
         })
         .catch(err => {
           this.toast('Error', err.body?.message || err, 'error');

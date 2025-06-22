@@ -1,19 +1,21 @@
 import { LightningElement, track } from 'lwc';
-import saveCategory      from '@salesforce/apex/CategoryController.saveCategory';
-import updateCategory    from '@salesforce/apex/CategoryController.updateCategory';
-import getAllCategories  from '@salesforce/apex/CategoryController.getAllCategories';
-import deleteCategory    from '@salesforce/apex/CategoryController.deleteCategory';
-import getAllUserLogins  from '@salesforce/apex/CategoryController.getAllUserLogins';
-import getAssignedUserIds from '@salesforce/apex/CategoryController.getAssignedUserIds';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import saveCategory         from '@salesforce/apex/CategoryController.saveCategory';
+import updateCategory       from '@salesforce/apex/CategoryController.updateCategory';
+import getAllCategories     from '@salesforce/apex/CategoryController.getAllCategories';
+import deleteCategory       from '@salesforce/apex/CategoryController.deleteCategory';
+import getAllUserLogins     from '@salesforce/apex/CategoryController.getAllUserLogins';
+import getAssignedUserIds   from '@salesforce/apex/CategoryController.getAssignedUserIds';
+import { ShowToastEvent }   from 'lightning/platformShowToastEvent';
 
 export default class CategoryCreator extends LightningElement {
-  @track categories    = [];
-  @track userOptions   = [];
+  @track allCategories = [];
+  @track categories = [];
+  @track userOptions = [];
 
-  @track categoryId    = null;
-  @track categoryName  = '';
+  @track categoryId = null;
+  @track categoryName = '';
   @track selectedUsers = [];
+  @track searchTerm = '';
 
   connectedCallback() {
     this.refreshCategories();
@@ -23,9 +25,11 @@ export default class CategoryCreator extends LightningElement {
   get cardTitle() {
     return this.categoryId ? 'Edytuj oddział' : 'Dodaj oddział';
   }
+
   get saveLabel() {
     return this.categoryId ? 'Zapisz zmiany' : 'Zapisz';
   }
+
   get disableSave() {
     return !this.categoryName || this.selectedUsers.length === 0;
   }
@@ -33,6 +37,7 @@ export default class CategoryCreator extends LightningElement {
   handleNameChange(e) {
     this.categoryName = e.target.value;
   }
+
   handleUserChange(e) {
     this.selectedUsers = e.detail.value;
   }
@@ -42,16 +47,11 @@ export default class CategoryCreator extends LightningElement {
       name: this.categoryName,
       userLoginIds: this.selectedUsers
     };
-    let action;
-    if (this.categoryId) {
-      action = updateCategory;
-      params.catId = this.categoryId;
-    } else {
-      action = saveCategory;
-    }
+    let action = this.categoryId ? updateCategory : saveCategory;
+    if (this.categoryId) params.catId = this.categoryId;
 
     action(params)
-      .then(res => {
+      .then(() => {
         this.toast('Sukces', this.categoryId ? 'Zaktualizowano' : 'Dodano', 'success');
         this.resetForm();
         this.refreshCategories();
@@ -62,13 +62,15 @@ export default class CategoryCreator extends LightningElement {
   handleEdit(e) {
     const id = e.currentTarget.dataset.id;
     const rec = this.categories.find(c => c.Id === id);
-    this.categoryId   = rec.Id;
+    this.categoryId = rec.Id;
     this.categoryName = rec.Name;
     getAssignedUserIds({ catId: id })
       .then(ids => {
         this.selectedUsers = ids;
       })
-      .catch(err => this.toast('Błąd', 'Nie udało się załadować użytkowników', 'error'));
+      .catch(() => {
+        this.toast('Błąd', 'Nie udało się załadować użytkowników', 'error');
+      });
   }
 
   handleDelete(e) {
@@ -81,18 +83,36 @@ export default class CategoryCreator extends LightningElement {
   }
 
   resetForm() {
-    this.categoryId    = null;
-    this.categoryName  = '';
+    this.categoryId = null;
+    this.categoryName = '';
     this.selectedUsers = [];
   }
 
   refreshCategories() {
     getAllCategories()
-      .then(data => this.categories = data);
+      .then(data => {
+        this.allCategories = data;
+        this.applyFilter();
+      });
   }
+
   loadUsers() {
     getAllUserLogins()
-      .then(u => this.userOptions = u.map(x => ({ label: x.Name, value: x.Id })));
+      .then(users => {
+        this.userOptions = users.map(x => ({ label: x.Name, value: x.Id }));
+      });
+  }
+
+  handleSearchChange(e) {
+    this.searchTerm = e.target.value;
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    const term = this.searchTerm.toLowerCase();
+    this.categories = this.allCategories.filter(c =>
+      c.Name?.toLowerCase().includes(term)
+    );
   }
 
   toast(title, msg, variant) {

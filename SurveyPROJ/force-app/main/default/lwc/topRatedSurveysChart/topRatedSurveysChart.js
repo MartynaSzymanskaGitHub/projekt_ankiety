@@ -25,7 +25,7 @@ export default class TopRatedSurveysChart extends LightningElement {
     for (let i = 0; i < 12; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const label = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-      const value = `${date.getMonth() + 1}-${date.getFullYear()}`; // e.g., "6-2025"
+      const value = `${date.getMonth() + 1}-${date.getFullYear()}`; 
       months.push({ label: label.charAt(0).toUpperCase() + label.slice(1), value });
     }
     return months;

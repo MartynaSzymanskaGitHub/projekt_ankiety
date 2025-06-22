@@ -2,6 +2,7 @@
   <c-logout-button></c-logout-button>
   <lightning-card title={cardTitle} icon-name="utility:add">
     <div class="slds-p-around_medium">
+
       <lightning-input
         label="Nazwa oddziału"
         value={categoryName}
@@ -35,8 +36,15 @@
         </template>
       </div>
 
+      <h3 class="slds-text-heading_small slds-m-top_large">Istniejące oddziały</h3>
+      <lightning-input
+        label="Wyszukaj oddział"
+        type="text"
+        onchange={handleSearchChange}
+        class="slds-m-bottom_small">
+      </lightning-input>
+
       <template if:true={categories.length}>
-        <h3 class="slds-text-heading_small slds-m-top_large">Istniejące oddziały</h3>
         <div class="slds-scrollable_y" style="max-height:220px;">
           <table class="slds-table slds-table_bordered slds-table_cell-buffer">
             <thead>
@@ -66,6 +74,10 @@
             </tbody>
           </table>
         </div>
+      </template>
+
+      <template if:false={categories.length}>
+        <p class="slds-text-body_regular slds-m-top_small">Brak dopasowanych oddziałów.</p>
       </template>
     </div>
   </lightning-card>

@@ -1,16 +1,27 @@
 <template>
-    <template if:true={isAuthorized}>
-          <c-logout-button></c-logout-button>
-  <lightning-card title="Manage Surveys" icon-name="utility:table">
-    <div class="slds-p-around_medium">
-      <lightning-datatable
-        key-field="Id"
-        data={surveys}
-        columns={columns}
-        hide-checkbox-column
-        onrowaction={handleRowAction}>
-      </lightning-datatable>
-    </div>
-  </lightning-card>
+  <template if:true={isAuthorized}>
+    <c-logout-button></c-logout-button>
+    <lightning-card title="Manage Surveys" icon-name="utility:table">
+      <div class="slds-p-around_medium">
+
+        <lightning-input 
+          label="Filtruj po tytule"
+          type="text"
+          onchange={handleFilterChange}
+          class="slds-m-bottom_small">
+        </lightning-input>
+
+        <lightning-datatable
+          key-field="Id"
+          data={surveys}
+          columns={columns}
+          hide-checkbox-column
+          onsort={handleSort}
+          sorted-by={sortBy}
+          sorted-direction={sortDirection}
+          onrowaction={handleRowAction}>
+        </lightning-datatable>
+      </div>
+    </lightning-card>
   </template>
 </template>
