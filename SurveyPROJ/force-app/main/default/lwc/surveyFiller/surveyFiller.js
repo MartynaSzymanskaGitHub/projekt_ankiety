@@ -5,7 +5,7 @@ import submitResponsesApex from '@salesforce/apex/SurveyController.submitRespons
 import checkUserSubmitted from '@salesforce/apex/SurveyController.hasUserSubmitted';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-const ALLOWED_ROLES = ['User', 'Worker'];
+const ALLOWED_ROLES = ['User'];
 
 export default class SurveyFiller extends LightningElement {
   @track surveys = [];

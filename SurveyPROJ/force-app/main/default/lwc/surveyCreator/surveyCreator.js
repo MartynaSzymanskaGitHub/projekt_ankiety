@@ -3,9 +3,12 @@ import saveSurvey       from '@salesforce/apex/SurveyController.saveSurvey';
 import getAllCategories from '@salesforce/apex/CategoryController.getAllCategories';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+let uidCounter = 1;
+
 function uid() {
-  return 'id-' + Math.random().toString(36).slice(2, 10);
+  return 'id-' + uidCounter++;
 }
+
 
 export default class SurveyCreator extends LightningElement {
   @track title              = '';
@@ -13,6 +16,7 @@ export default class SurveyCreator extends LightningElement {
   @track endDate            = '';
   @track selectedCategoryId = '';
   @track categories         = [];
+  
 
   @track questions = [
     {
