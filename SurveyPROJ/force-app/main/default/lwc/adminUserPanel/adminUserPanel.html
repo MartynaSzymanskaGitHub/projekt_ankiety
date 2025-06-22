@@ -1,14 +1,26 @@
 <template>
-    <c-logout-button></c-logout-button>
-  <lightning-card title="Panel administratora - Konta użytkowników" icon-name="standard:contact">
+  <c-logout-button></c-logout-button>
+
+  <lightning-card title="Admin Panel – User Accounts" icon-name="standard:contact">
     <div class="slds-p-around_medium">
-      <template if:true={users.length}>
+
+      <lightning-input 
+        label="Search by name" 
+        onchange={handleSearchChange}
+        value={searchKey}
+        class="slds-m-bottom_small">
+      </lightning-input>
+
+      <template if:true={filteredUsers.length}>
         <lightning-datatable
           key-field="Id"
-          data={users}
+          data={filteredUsers}
           columns={columns}
           hide-checkbox-column
           onsave={handleSave}
+          onsort={handleSort}
+          sorted-by={sortBy}
+          sorted-direction={sortDirection}
           draft-values={draftValues}
           class="slds-m-top_medium">
         </lightning-datatable>
@@ -19,7 +31,7 @@
       </template>
 
       <template if:true={error}>
-        <p class="slds-text-color_error">Błąd: {error}</p>
+        <p class="slds-text-color_error">Error: {error}</p>
       </template>
     </div>
   </lightning-card>

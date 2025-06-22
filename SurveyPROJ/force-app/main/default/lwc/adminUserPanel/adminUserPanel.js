@@ -11,27 +11,31 @@ const ROLE_OPTIONS = [
 
 export default class AdminUserPanel extends LightningElement {
   @track users = [];
+  @track filteredUsers = [];
   @track error;
   @track isLoading = true;
   @track draftValues = [];
+  @track searchKey = '';
+  @track sortBy = 'Name';
+  @track sortDirection = 'asc';
 
   columns = [
-    { label: 'Imię i nazwisko', fieldName: 'Name', type: 'text' },
+    { label: 'Full Name', fieldName: 'Name', type: 'text', sortable: true },
     { label: 'Email', fieldName: 'Email__c', type: 'email' },
     {
-      label: 'Rola',
+      label: 'Role',
       fieldName: 'Role__c',
       type: 'picklist',
       editable: true,
       typeAttributes: {
-        placeholder: 'Wybierz rolę',
+        placeholder: 'Select role',
         options: ROLE_OPTIONS,
         value: { fieldName: 'Role__c' },
         context: { fieldName: 'Id' }
       }
     },
     {
-      label: 'Aktywne konto',
+      label: 'Active Account',
       fieldName: 'Is_Active__c',
       type: 'boolean',
       editable: true
@@ -69,64 +73,80 @@ export default class AdminUserPanel extends LightningElement {
     if (data) {
       this.users = data;
       this.error = undefined;
+      this.applySearchAndSort();
     } else if (error) {
-      this.error = error.body.message;
+      this.error = error.body?.message || error.message;
     }
   }
 
- handleSave(event) {
-  const draftValues = event.detail.draftValues;
+  handleSearchChange(event) {
+    this.searchKey = event.target.value.toLowerCase();
+    this.applySearchAndSort();
+  }
 
-  const updates = draftValues.map(row => {
-    const promises = [];
+  handleSort(event) {
+    this.sortBy = event.detail.fieldName;
+    this.sortDirection = event.detail.sortDirection;
+    this.applySearchAndSort();
+  }
 
-    if ('Is_Active__c' in row) {
-      promises.push(updateUserStatus({ userId: row.Id, isActive: row.Is_Active__c }));
-    }
+  applySearchAndSort() {
+    let filtered = this.users.filter(u =>
+      u.Name?.toLowerCase().includes(this.searchKey)
+    );
 
-    if ('Role__c' in row) {
-      promises.push(updateUserRole({ userId: row.Id, role: row.Role__c }));
-    }
-
-    return Promise.all(promises);
-  });
-
-  Promise.all(updates.flat())
-    .then(() => {
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: 'Sukces',
-          message: 'Zaktualizowano dane użytkowników.',
-          variant: 'success'
-        })
-      );
-
-      window.location.reload();
-    })
-    .catch(error => {
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: 'Błąd',
-          message: error.body?.message || error.message,
-          variant: 'error'
-        })
-      );
+    filtered.sort((a, b) => {
+      const valA = a[this.sortBy] || '';
+      const valB = b[this.sortBy] || '';
+      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
     });
-}
 
+    this.filteredUsers = filtered;
+  }
 
-  refreshUserList() {
-    this.isLoading = true;
-    getAllUsers()
+  handleSave(event) {
+    const draftValues = event.detail.draftValues;
+
+    const updates = draftValues.map(row => {
+      const promises = [];
+
+      if ('Is_Active__c' in row) {
+        promises.push(updateUserStatus({ userId: row.Id, isActive: row.Is_Active__c }));
+      }
+
+      if ('Role__c' in row) {
+        promises.push(updateUserRole({ userId: row.Id, role: row.Role__c }));
+      }
+
+      return Promise.all(promises);
+    });
+
+    Promise.all(updates.flat())
+      .then(() => {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: 'Success',
+            message: 'User records have been updated.',
+            variant: 'success'
+          })
+        );
+        return getAllUsers();
+      })
       .then(data => {
         this.users = data;
         this.draftValues = [];
-        this.error = undefined;
-        this.isLoading = false;
+        this.applySearchAndSort();
       })
       .catch(error => {
-        this.error = error.body?.message || error.message;
-        this.isLoading = false;
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: 'Error',
+            message: error.body?.message || error.message,
+            variant: 'error'
+          })
+        );
       });
   }
 }
