@@ -19,7 +19,7 @@ public with sharing class AdminUserPanelController {
     @AuraEnabled
     public static void updateUserRole(String userId, String role) {
         if (role != 'Admin' && role != 'User') {
-            throw new AuraHandledException('Dozwolone role to tylko "Admin" i "User".');
+            throw new AuraHandledException('Allowed roles :  "Admin" and "User".');
         }
         User_Login__c user = [SELECT Id, Role__c FROM User_Login__c WHERE Id = :userId LIMIT 1];
         user.Role__c = role;
