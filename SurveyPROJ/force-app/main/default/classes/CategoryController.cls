@@ -98,7 +98,7 @@ private static void upsertUserLinks(Id catId, List<Id> userLoginIds) {
     for (Id u : userLoginIds) {
         toIns.add(new User_Category_PROJ__c(
             Category_PROJ__c = catId,
-            User__c          = u
+            User__c = u
         ));
     }
 

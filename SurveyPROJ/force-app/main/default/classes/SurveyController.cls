@@ -33,28 +33,6 @@ public with sharing class SurveyController {
 }
 
 
-@AuraEnabled(cacheable=true)
-public static List<RoleResponseCount> getGlobalSurveyResultsByRole() {
-    List<RoleResponseCount> result = new List<RoleResponseCount>();
-
-    AggregateResult[] grouped = [
-        SELECT User_Login__r.Role__c role, COUNT_DISTINCT(Survey__c) cnt
-        FROM Response_PROJ__c
-        WHERE User_Login__r.Role__c != null
-        GROUP BY User_Login__r.Role__c
-    ];
-
-    for (AggregateResult r : grouped) {
-        result.add(new RoleResponseCount(
-            (String)r.get('role'),
-            (Integer)r.get('cnt')
-        ));
-    }
-
-    return result;
-}
-
-
 
 @AuraEnabled(cacheable=true)
 public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month, Integer year) {
@@ -83,30 +61,6 @@ public static List<SurveyAverageRating> getTopRatedSurveysByMonth(Integer month,
     return topSurveys;
 }
 
-    @AuraEnabled(cacheable=true)
-    public static List<SurveyAverageRating> getTop3RatedSurveysDynamic() {
-        AggregateResult[] results = [
-            SELECT Survey_PROJ__c,
-                   Survey_PROJ__r.Title_c__c   title,
-                   AVG(Rating__c)              avgRating
-            FROM   SurveyRating_PROJ__c
-            WHERE  Rating__c != null 
-              AND Survey_PROJ__r.Title_c__c != null
-            GROUP  BY Survey_PROJ__c, Survey_PROJ__r.Title_c__c
-            ORDER  BY AVG(Rating__c) DESC
-            LIMIT  3
-        ];
-
-        List<SurveyAverageRating> outList = new List<SurveyAverageRating>();
-        for (AggregateResult r : results) {
-            String title = (String) r.get('title');
-            Decimal rating = (Decimal) r.get('avgRating');
-            if (title != null && rating != null) {
-                outList.add(new SurveyAverageRating(title, rating));
-            }
-        }
-        return outList;
-    }
 
     @AuraEnabled(cacheable=true)
     public static List<Survey_PROJ__c> getAllSurveysWithSorting(Boolean ascending) {

@@ -10,17 +10,17 @@ public with sharing class LoginController {
         ];
 
         if (users.isEmpty()) {
-            throw new AuraHandledException('Użytkownik nie istnieje.');
+            throw new AuraHandledException('User does not exist.');
         }
 
         User_Login__c user = users[0];
 
         if (!user.Is_Active__c) {
-            throw new AuraHandledException('Konto jest nieaktywne. Skontaktuj się z administratorem.');
+            throw new AuraHandledException('Inactive account. Contact the administrator.');
         }
 
         if (user.Password__c != password) {
-            throw new AuraHandledException('Niepoprawne hasło.');
+            throw new AuraHandledException('Invalid password.');
         }
 
         return user;

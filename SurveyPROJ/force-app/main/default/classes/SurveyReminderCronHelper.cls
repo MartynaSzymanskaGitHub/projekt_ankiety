@@ -7,7 +7,7 @@ public class SurveyReminderCronHelper {
         String morning = '0 0 10 * * ?';
         System.schedule('SurveyReminder_10', morning, new SurveyReminderScheduler());
 
-        String evening = '0 0 16 * * ?';
-        System.schedule('SurveyReminder_16', evening, new SurveyReminderScheduler());
+        String evening = '0 0 18 * * ?';
+        System.schedule('SurveyReminder_18', evening, new SurveyReminderScheduler());
     }
 }
