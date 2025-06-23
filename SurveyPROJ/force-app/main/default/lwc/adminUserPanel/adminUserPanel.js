@@ -25,14 +25,8 @@ export default class AdminUserPanel extends LightningElement {
     {
       label: 'Role',
       fieldName: 'Role__c',
-      type: 'picklist',
-      editable: true,
-      typeAttributes: {
-        placeholder: 'Select role',
-        options: ROLE_OPTIONS,
-        value: { fieldName: 'Role__c' },
-        context: { fieldName: 'Id' }
-      }
+      type: 'text',
+      editable: true
     },
     {
       label: 'Active Account',
