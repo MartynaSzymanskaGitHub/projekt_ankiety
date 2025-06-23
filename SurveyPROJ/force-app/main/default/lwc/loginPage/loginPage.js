@@ -20,8 +20,8 @@ export default class LoginPage extends LightningElement {
         delete user.Password__c;
         localStorage.setItem('user', JSON.stringify(user));
         this.dispatchEvent(new ShowToastEvent({
-          title: 'Zalogowano',
-          message: `Witaj, ${user.Name}`,
+          title: 'Logged succesfully',
+          message: `Welcome, ${user.Name}`,
           variant: 'success'
         }));
         window.location.href = '/lightning/n/SurveyResultsPage';
