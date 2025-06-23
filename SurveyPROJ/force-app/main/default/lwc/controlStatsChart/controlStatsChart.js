@@ -44,7 +44,7 @@ export default class ControlStatsChart extends LightningElement {
         }));
       })
       .catch(err => {
-        this.showToast('Błąd ładowania ankiet', err.body?.message || err.message, 'error');
+        this.showToast('Error', err.body?.message || err.message, 'error');
       });
   }
 
@@ -54,7 +54,7 @@ export default class ControlStatsChart extends LightningElement {
 
     loadScript(this, ChartJs)
       .catch(err => {
-        this.showToast('Błąd ładowania Chart.js', err.body?.message || err.message, 'error');
+        this.showToast('Error loading Chart.js', err.body?.message || err.message, 'error');
       });
   }
 
