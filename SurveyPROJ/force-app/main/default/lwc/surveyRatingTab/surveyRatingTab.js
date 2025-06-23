@@ -22,7 +22,7 @@ export default class SurveyRatingTab extends LightningElement {
       return;
     }
     this.userLoginId = user.Id;
-    this.userRole    = user.Role__c;
+    this.userRole = user.Role__c;
 
     if (!ALLOWED_ROLES.includes(this.userRole)) {
       alert('User and Worker can rate the surveys.');

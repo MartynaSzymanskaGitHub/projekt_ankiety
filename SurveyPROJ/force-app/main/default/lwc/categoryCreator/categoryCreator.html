@@ -4,16 +4,16 @@
     <div class="slds-p-around_medium">
 
       <lightning-input
-        label="Nazwa oddziału"
+        label="Departament name"
         value={categoryName}
         onchange={handleNameChange}>
       </lightning-input>
 
       <lightning-dual-listbox
         name="users"
-        label="Użytkownicy"
-        source-label="Dostępni"
-        selected-label="Wybrani"
+        label="Users"
+        source-label="Available"
+        selected-label="Selected"
         options={userOptions}
         value={selectedUsers}
         onchange={handleUserChange}
@@ -29,16 +29,16 @@
         </lightning-button>
         <template if:true={categoryId}>
           <lightning-button
-            label="Anuluj"
+            label="Cancel"
             onclick={resetForm}
             class="slds-m-left_small">
           </lightning-button>
         </template>
       </div>
 
-      <h3 class="slds-text-heading_small slds-m-top_large">Istniejące oddziały</h3>
+      <h3 class="slds-text-heading_small slds-m-top_large">Existing departament</h3>
       <lightning-input
-        label="Wyszukaj oddział"
+        label="Search the departament"
         type="text"
         onchange={handleSearchChange}
         class="slds-m-bottom_small">
@@ -48,7 +48,7 @@
         <div class="slds-scrollable_y" style="max-height:220px;">
           <table class="slds-table slds-table_bordered slds-table_cell-buffer">
             <thead>
-              <tr><th>Nazwa</th><th>Akcje</th></tr>
+              <tr><th>Name</th><th>Action</th></tr>
             </thead>
             <tbody>
               <template for:each={categories} for:item="c">
@@ -57,14 +57,14 @@
                   <td class="slds-text-align_right">
                     <lightning-button-icon
                       icon-name="utility:edit"
-                      alternative-text="Edytuj"
+                      alternative-text="Edit"
                       data-id={c.Id}
                       onclick={handleEdit}>
                     </lightning-button-icon>
                     <lightning-button-icon
                       icon-name="utility:delete"
                       variant="border-filled"
-                      alternative-text="Usuń"
+                      alternative-text="Delete"
                       data-id={c.Id}
                       onclick={handleDelete}>
                     </lightning-button-icon>
@@ -77,7 +77,7 @@
       </template>
 
       <template if:false={categories.length}>
-        <p class="slds-text-body_regular slds-m-top_small">Brak dopasowanych oddziałów.</p>
+        <p class="slds-text-body_regular slds-m-top_small">No matching departament.</p>
       </template>
     </div>
   </lightning-card>

@@ -1,5 +1,5 @@
 import { LightningElement, track } from 'lwc';
-import saveSurvey       from '@salesforce/apex/SurveyController.saveSurvey';
+import saveSurvey from '@salesforce/apex/SurveyController.saveSurvey';
 import getAllCategories from '@salesforce/apex/CategoryController.getAllCategories';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -11,11 +11,11 @@ function uid() {
 
 
 export default class SurveyCreator extends LightningElement {
-  @track title              = '';
-  @track description        = '';
-  @track endDate            = '';
+  @track title = '';
+  @track description = '';
+  @track endDate = '';
   @track selectedCategoryId = '';
-  @track categories         = [];
+  @track categories = [];
   
 
   @track questions = [
@@ -29,7 +29,7 @@ export default class SurveyCreator extends LightningElement {
     }
   ];
 
-  isSaving     = false;
+  isSaving = false;
   isAuthorized = false;
 
   connectedCallback() {
@@ -52,10 +52,10 @@ export default class SurveyCreator extends LightningElement {
       });
   }
 
-  handleTitleChange(e)       { this.title       = e.target.value; }
+  handleTitleChange(e) { this.title  = e.target.value; }
   handleDescriptionChange(e) { this.description = e.target.value; }
-  handleEndDateChange(e)     { this.endDate     = e.target.value; }
-  handleCategoryChange(e)    { this.selectedCategoryId = e.detail.value; }
+  handleEndDateChange(e) { this.endDate = e.target.value; }
+  handleCategoryChange(e) { this.selectedCategoryId = e.detail.value; }
 
   addQuestion() {
     const newId = this.questions.length + 1;
@@ -100,7 +100,7 @@ export default class SurveyCreator extends LightningElement {
   }
 
   toggleIsControl(e) {
-    const id      = Number(e.target.dataset.id);
+    const id  = Number(e.target.dataset.id);
     const checked = e.target.checked;
 
     this.questions = this.questions.map(q => {
@@ -109,7 +109,7 @@ export default class SurveyCreator extends LightningElement {
       return {
         ...q,
         isControl: checked,
-        multi    : checked ? false : q.multi  
+        multi : checked ? false : q.multi  
       };
     });
   }
@@ -197,7 +197,7 @@ export default class SurveyCreator extends LightningElement {
         );
         if (!correct) {
           this.toast('Error',
-            `Pytanie kontrolne "${q.text || '(bez tytułu)'}" musi mieć poprawną odpowiedź.`,
+            `Control question "${q.text || '(bez tytułu)'}" must have correct answer.`,
             'error');
           return;
         }
@@ -205,9 +205,9 @@ export default class SurveyCreator extends LightningElement {
     }
 
     const survey = {
-      Title_c__c       : this.title,
-      Description__c   : this.description,
-      End_Date__c      : this.endDate,
+      Title_c__c : this.title,
+      Description__c : this.description,
+      End_Date__c : this.endDate,
       Category_PROJ__c : this.selectedCategoryId
     };
 

@@ -16,7 +16,7 @@ public with sharing class UserCategoryService {
         ]) {
             if (!alreadyLinked.contains(u.Id)) {
                 toInsert.add(new User_Category_PROJ__c(
-                    User__c      = u.Id,
+                    User__c = u.Id,
                     Category_PROJ__c = catId
                 ));
             }

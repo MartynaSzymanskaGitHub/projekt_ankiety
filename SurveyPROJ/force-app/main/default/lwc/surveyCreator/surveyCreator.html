@@ -33,9 +33,9 @@
           <div key={q.id} class="slds-box slds-m-top_medium">
 
             <div class="slds-grid slds-align-spread slds-m-bottom_small">
-              <h3>Pytanie {q.id}</h3>
+              <h3>Question {q.id}</h3>
               <lightning-button-icon icon-name="utility:close"
-                                     alternative-text="Usuń pytanie"
+                                     alternative-text="Delete question"
                                      data-id={q.id}
                                      onclick={removeQuestion}>
               </lightning-button-icon>
@@ -62,7 +62,7 @@
                             data-id={q.id}
                             checked={q.isControl}
                             disabled={disableControlQuestion}
-                            message-when-value-missing="Dodaj kolejne pytania, aby móc dodać pytanie kontrolne"
+                            message-when-value-missing="Add more question to unlock control question option"
                             onchange={toggleIsControl}>
             </lightning-input>
 
@@ -89,7 +89,7 @@
                 </template>
 
                 <lightning-button-icon icon-name="utility:close"
-                                       alternative-text="Usuń opcję"
+                                       alternative-text="Delete option"
                                        data-qid={q.id}
                                        data-cid={choice.id}
                                        onclick={removeChoice}>

@@ -16,7 +16,7 @@ export default class RegisterForm extends LightningElement {
       await registerUser({ name: this.name, email: this.email, password: this.password });
       this.dispatchEvent(new ShowToastEvent({
         title: 'Sukces',
-        message: 'Zarejestrowano użytkownika.',
+        message: 'Succesfully register user.',
         variant: 'success'
       }));
       this.name = '';

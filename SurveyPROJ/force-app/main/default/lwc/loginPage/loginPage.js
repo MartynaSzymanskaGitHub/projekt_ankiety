@@ -28,7 +28,7 @@ export default class LoginPage extends LightningElement {
       })
       .catch(error => {
         this.dispatchEvent(new ShowToastEvent({
-          title: 'Błąd logowania',
+          title: 'Error loading',
           message: error.body?.message || error.message,
           variant: 'error'
         }));

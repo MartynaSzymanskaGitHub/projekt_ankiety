@@ -79,11 +79,11 @@ export default class CategoryCreator extends LightningElement {
 
     action(params)
       .then(() => {
-        this.toast('Sukces', this.categoryId ? 'Zaktualizowano' : 'Dodano', 'success');
+        this.toast('Sukces', this.categoryId ? 'Updated departament' : 'Added', 'success');
         this.resetForm();
         this.refreshCategories();
       })
-      .catch(err => this.toast('Błąd', err.body?.message || err.message, 'error'));
+      .catch(err => this.toast('Error', err.body?.message || err.message, 'error'));
   }
 
   handleEdit(e) {
@@ -96,17 +96,17 @@ export default class CategoryCreator extends LightningElement {
         this.selectedUsers = ids;
       })
       .catch(() => {
-        this.toast('Błąd', 'Nie udało się załadować użytkowników', 'error');
+        this.toast('Error', 'Error loading users', 'error');
       });
   }
 
   handleDelete(e) {
     deleteCategory({ catId: e.currentTarget.dataset.id })
       .then(() => {
-        this.toast('Sukces', 'Usunięto', 'success');
+        this.toast('Sukces', 'Deleted', 'success');
         this.refreshCategories();
       })
-      .catch(err => this.toast('Błąd', err.body?.message || err.message, 'error'));
+      .catch(err => this.toast('Error', err.body?.message || err.message, 'error'));
   }
 
   resetForm() {

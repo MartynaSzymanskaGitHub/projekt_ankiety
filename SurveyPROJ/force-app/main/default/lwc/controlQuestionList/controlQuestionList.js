@@ -4,13 +4,13 @@ import getControlQuestions from '@salesforce/apex/SurveyController.getControlQue
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class ControlQuestionList extends LightningElement {
-  @track surveyOptions    = [];
+  @track surveyOptions = [];
   @track selectedSurveyId = '';
-  @track questions        = [];
+  @track questions = [];
 
   columns = [
-    { label: 'Question',             fieldName: 'Question_Text__c',   type: 'text', wrapText: true },
-    { label: 'correct answer',  fieldName: 'Correct_Choice__c',      type: 'text' }
+    { label: 'Question', fieldName: 'Question_Text__c', type: 'text', wrapText: true },
+    { label: 'correct answer',  fieldName: 'Correct_Choice__c', type: 'text' }
   ];
 
   get noData() {

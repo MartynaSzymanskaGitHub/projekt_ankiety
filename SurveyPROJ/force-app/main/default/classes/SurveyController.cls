@@ -425,7 +425,7 @@ public static List<Question_PROJ__c> getControlQuestions(Id surveyId) {
                Question_Text__c,
                Correct_Choice__c
         FROM Question_PROJ__c
-        WHERE Survey__c        = :surveyId
+        WHERE Survey__c = :surveyId
           AND Is_Control_c__c = true   
           ORDER BY Name   
     ];

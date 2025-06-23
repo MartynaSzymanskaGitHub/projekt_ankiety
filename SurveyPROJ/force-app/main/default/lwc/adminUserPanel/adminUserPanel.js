@@ -4,10 +4,6 @@ import updateUserStatus from '@salesforce/apex/AdminUserPanelController.updateUs
 import updateUserRole from '@salesforce/apex/AdminUserPanelController.updateUserRole';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-const ROLE_OPTIONS = [
-  { label: 'Admin', value: 'Admin' },
-  { label: 'User', value: 'User' }
-];
 
 export default class AdminUserPanel extends LightningElement {
   @track users = [];
